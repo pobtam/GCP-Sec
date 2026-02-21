@@ -1,0 +1,324 @@
+package analyzer
+
+import (
+	"flag"
+	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+
+	"github.com/wanaware/gcp-security-analyzer/internal/models"
+	"github.com/wanaware/gcp-security-analyzer/internal/utils"
+	"github.com/wanaware/gcp-security-analyzer/pkg/compliance"
+	"github.com/wanaware/gcp-security-analyzer/pkg/llm"
+	"github.com/wanaware/gcp-security-analyzer/pkg/parser"
+	"github.com/wanaware/gcp-security-analyzer/pkg/remediation"
+	"github.com/wanaware/gcp-security-analyzer/pkg/report"
+	"github.com/wanaware/gcp-security-analyzer/pkg/scoring"
+)
+
+// analyzeValueFlags lists flags for the analyze command that take a value argument.
+// Used by ExtractPositional to correctly separate the CSV filename from flag values.
+var analyzeValueFlags = map[string]bool{
+	"-o": true, "--output": true,
+	"-f": true, "--format": true,
+	"-d": true, "--output-dir": true,
+	"--formats":        true,
+	"-p": true, "--priority": true,
+	"-c": true, "--category": true,
+	"--project":        true,
+	"--scoring-config": true,
+	"--min-risk-score": true,
+	"--max-risk-score": true,
+}
+
+// AnalyzeFlags holds parsed CLI flags for the analyze command.
+type AnalyzeFlags struct {
+	Output             string
+	Format             string
+	OutputDir          string
+	Formats            string
+	Priorities         string
+	Categories         string
+	Projects           string
+	SplitByPriority    bool
+	IncludeRemediation bool
+	IncludeCompliance  bool
+	AIEnhance          bool
+	MinRiskScore       float64
+	MaxRiskScore       float64
+	Verbose            bool
+	Debug              bool
+}
+
+func runAnalyze(args []string) int {
+	// Separate the positional CSV file argument from flag arguments so that Go's
+	// standard flag package works correctly regardless of argument ordering.
+	inputFile, flagArgs := utils.ExtractPositional(args, analyzeValueFlags)
+
+	fs := flag.NewFlagSet("analyze", flag.ContinueOnError)
+	af := &AnalyzeFlags{}
+
+	fs.StringVar(&af.Output, "output", "report.md", "Output file path")
+	fs.StringVar(&af.Output, "o", "report.md", "Output file path (shorthand)")
+	fs.StringVar(&af.Format, "format", "markdown", "Output format")
+	fs.StringVar(&af.Format, "f", "markdown", "Output format (shorthand)")
+	fs.StringVar(&af.OutputDir, "output-dir", "", "Output directory")
+	fs.StringVar(&af.OutputDir, "d", "", "Output directory (shorthand)")
+	fs.StringVar(&af.Formats, "formats", "", "Comma-separated output formats")
+	fs.StringVar(&af.Priorities, "priority", "", "Filter by priority (comma-separated)")
+	fs.StringVar(&af.Priorities, "p", "", "Filter by priority (shorthand)")
+	fs.StringVar(&af.Categories, "category", "", "Filter by category (comma-separated)")
+	fs.StringVar(&af.Categories, "c", "", "Filter by category (shorthand)")
+	fs.StringVar(&af.Projects, "project", "", "Filter by project (comma-separated)")
+	fs.BoolVar(&af.SplitByPriority, "split-by-priority", false, "Split output by priority")
+	fs.BoolVar(&af.IncludeRemediation, "include-remediation", false, "Include remediation steps")
+	fs.BoolVar(&af.IncludeCompliance, "include-compliance", false, "Include compliance details")
+	fs.BoolVar(&af.AIEnhance, "ai-enhance", false, "Enrich CRITICAL findings via Claude AI (requires ANTHROPIC_API_KEY)")
+	fs.Float64Var(&af.MinRiskScore, "min-risk-score", 0, "Minimum risk score")
+	fs.Float64Var(&af.MaxRiskScore, "max-risk-score", 100, "Maximum risk score")
+	fs.BoolVar(&af.Verbose, "verbose", false, "Verbose logging")
+	fs.BoolVar(&af.Verbose, "v", false, "Verbose logging (shorthand)")
+	fs.BoolVar(&af.Debug, "debug", false, "Debug logging")
+
+	if err := fs.Parse(flagArgs); err != nil {
+		fmt.Fprintf(os.Stderr, "Error parsing flags: %v\n", err)
+		return 1
+	}
+
+	if inputFile == "" {
+		fmt.Fprintf(os.Stderr, "Error: input CSV file is required\n\nUsage: gcp-security-analyzer analyze <input.csv> [options]\n")
+		return 1
+	}
+
+	logger := GlobalConfig.Logger
+
+	// ── Parse CSV ──────────────────────────────────────────────────────────────
+	logger.Info("Parsing CSV file: %s", inputFile)
+	p := parser.NewParser(logger)
+	findings, parseErrors, err := p.ParseFile(inputFile)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		return 1
+	}
+	logger.Info("Parsed %d findings (%d parse errors)", len(findings), parseErrors)
+
+	// ── Score findings ─────────────────────────────────────────────────────────
+	logger.Info("Scoring %d findings...", len(findings))
+	engine := scoring.NewEngine(scoring.DefaultConfig(), logger)
+	engine.ScoreAll(findings)
+
+	// ── Compliance detection ───────────────────────────────────────────────────
+	detector := compliance.NewDetector()
+	for _, f := range findings {
+		detector.DetectViolations(f)
+	}
+
+	// ── Remediation guidance ───────────────────────────────────────────────────
+	if af.IncludeRemediation {
+		logger.Info("Generating remediation guidance...")
+		gen := remediation.NewGenerator()
+		gen.GenerateAll(findings)
+	}
+
+	// ── AI enrichment (optional) ───────────────────────────────────────────────
+	// Runs after remediation so the LLM can replace template scripts with
+	// context-aware, resource-specific scripts for CRITICAL findings.
+	if af.AIEnhance {
+		apiKey := os.Getenv("ANTHROPIC_API_KEY")
+		if apiKey == "" {
+			fmt.Fprintln(os.Stderr, "Warning: --ai-enhance set but ANTHROPIC_API_KEY is not set; skipping AI enrichment")
+		} else {
+			logger.Info("AI-enhancing CRITICAL findings via Claude API...")
+			enricher := llm.NewEnricher(apiKey, logger)
+			enricher.EnrichAll(findings)
+		}
+	}
+
+	// ── Apply filters ──────────────────────────────────────────────────────────
+	filtered := applyFilters(findings, af)
+	logger.Info("Findings after filtering: %d", len(filtered))
+
+	// ── Build report ───────────────────────────────────────────────────────────
+	builder := report.NewBuilder()
+	r := builder.Build(filtered, inputFile, parseErrors)
+
+	if af.IncludeCompliance {
+		r.ComplianceSummary = detector.Aggregate(filtered)
+	}
+
+	// ── Print summary to stdout ────────────────────────────────────────────────
+	printSummary(r)
+
+	// ── Write report(s) ────────────────────────────────────────────────────────
+	formats := resolveFormats(af)
+	baseName := strings.TrimSuffix(filepath.Base(inputFile), filepath.Ext(inputFile)) + "-report"
+
+	outDir := af.OutputDir
+	if af.OutputDir != "" || len(formats) > 1 {
+		if outDir == "" {
+			outDir = "."
+		}
+		if af.SplitByPriority {
+			for _, fmtName := range formats {
+				written, err := report.WriteSplitByPriority(r, fmtName, outDir, baseName)
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "Error writing split reports: %v\n", err)
+					return 1
+				}
+				for _, path := range written {
+					fmt.Printf("  Wrote: %s\n", path)
+				}
+			}
+		} else {
+			written, err := report.WriteReports(r, formats, outDir, baseName)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Error writing reports: %v\n", err)
+				return 1
+			}
+			for _, path := range written {
+				fmt.Printf("  Wrote: %s\n", path)
+			}
+		}
+	} else {
+		// Single output file
+		outPath := af.Output
+		fmtName := formats[0]
+		if err := report.WriteReport(r, fmtName, outPath); err != nil {
+			fmt.Fprintf(os.Stderr, "Error writing report: %v\n", err)
+			return 1
+		}
+		fmt.Printf("\nReport written to: %s\n", outPath)
+		outDir = filepath.Dir(outPath)
+		if outDir == "" {
+			outDir = "."
+		}
+	}
+
+	// ── Write per-finding remediation scripts ──────────────────────────────────
+	if af.IncludeRemediation {
+		scriptFiles, err := report.WriteRemediationScripts(r, outDir)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Warning: error writing remediation scripts: %v\n", err)
+		}
+		for _, path := range scriptFiles {
+			fmt.Printf("  Script: %s\n", path)
+		}
+		if len(scriptFiles) > 0 {
+			fmt.Printf("  [%d remediation script(s) in %s/remediation-scripts/]\n",
+				len(scriptFiles), outDir)
+		}
+	}
+
+	return 0
+}
+
+// applyFilters applies all active filters to the findings slice.
+func applyFilters(findings []*models.Finding, af *AnalyzeFlags) []*models.Finding {
+	result := findings
+
+	if af.Priorities != "" {
+		priorities := splitUpper(af.Priorities)
+		set := make(map[string]bool, len(priorities))
+		for _, p := range priorities {
+			set[p] = true
+		}
+		var out []*models.Finding
+		for _, f := range result {
+			if set[f.Priority] {
+				out = append(out, f)
+			}
+		}
+		result = out
+	}
+
+	if af.Categories != "" {
+		categories := splitUpper(af.Categories)
+		set := make(map[string]bool, len(categories))
+		for _, c := range categories {
+			set[c] = true
+		}
+		var out []*models.Finding
+		for _, f := range result {
+			if set[f.Category] {
+				out = append(out, f)
+			}
+		}
+		result = out
+	}
+
+	if af.Projects != "" {
+		projects := splitFields(af.Projects)
+		set := make(map[string]bool, len(projects))
+		for _, p := range projects {
+			set[p] = true
+		}
+		var out []*models.Finding
+		for _, f := range result {
+			if set[f.ProjectID] || set[f.ProjectDisplayName] {
+				out = append(out, f)
+			}
+		}
+		result = out
+	}
+
+	if af.MinRiskScore > 0 || af.MaxRiskScore < 100 {
+		var out []*models.Finding
+		for _, f := range result {
+			if f.RiskScore == nil {
+				continue
+			}
+			if f.RiskScore.Total >= af.MinRiskScore && f.RiskScore.Total <= af.MaxRiskScore {
+				out = append(out, f)
+			}
+		}
+		result = out
+	}
+
+	return result
+}
+
+// resolveFormats returns the list of output formats to generate.
+func resolveFormats(af *AnalyzeFlags) []string {
+	if af.Formats != "" {
+		return splitFields(af.Formats)
+	}
+	return []string{af.Format}
+}
+
+// printSummary prints a quick stats summary to stdout.
+func printSummary(r *models.Report) {
+	fmt.Printf("\n── Analysis Complete ──────────────────────────────────────\n")
+	fmt.Printf("  Total findings:  %d\n", r.Stats.Total)
+	fmt.Printf("  Critical:        %d\n", r.Stats.Critical)
+	fmt.Printf("  High:            %d\n", r.Stats.High)
+	fmt.Printf("  Medium:          %d\n", r.Stats.Medium)
+	fmt.Printf("  Low:             %d\n", r.Stats.Low)
+	fmt.Printf("  Mean risk score: %.2f\n", r.Stats.RiskStats.Mean)
+	fmt.Printf("  Risk range:      %.2f - %.2f\n", r.Stats.RiskStats.Min, r.Stats.RiskStats.Max)
+	fmt.Printf("──────────────────────────────────────────────────────────\n")
+}
+
+func splitUpper(s string) []string {
+	parts := strings.Split(s, ",")
+	out := make([]string, 0, len(parts))
+	for _, p := range parts {
+		p = strings.ToUpper(strings.TrimSpace(p))
+		if p != "" {
+			out = append(out, p)
+		}
+	}
+	return out
+}
+
+func splitFields(s string) []string {
+	parts := strings.Split(s, ",")
+	out := make([]string, 0, len(parts))
+	for _, p := range parts {
+		p = strings.TrimSpace(p)
+		if p != "" {
+			out = append(out, p)
+		}
+	}
+	return out
+}
