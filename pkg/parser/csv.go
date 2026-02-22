@@ -18,6 +18,46 @@ import (
 // fieldIndex maps CSV column names to their index in the header row.
 type fieldIndex map[string]int
 
+// columnAliases maps known GCP SCC CSV column name variants to the canonical
+// column names used by parseRow(). This allows the parser to handle both the
+// simplified column names (used in sample/test data) and the dotted API paths
+// produced by "gcloud scc findings list --format=csv".
+var columnAliases = map[string]string{
+	// Core finding fields
+	"finding.name":          "name",
+	"finding.finding_class": "finding_class",
+	"finding.findingClass":  "finding_class",
+	"finding.finding_type":  "finding_type",
+	"finding.findingType":   "finding_type",
+	"finding.category":      "category",
+	"finding.state":         "state",
+	"finding.severity":      "severity",
+
+	// Resource fields
+	"resource.name":                 "resource_name",
+	"resource.display_name":         "resource_display_name",
+	"resource.displayName":          "resource_display_name",
+	"resource.type":                 "resource_type",
+	"resource.resourceType":         "resource_type",
+	"resource.resource_type":        "resource_type",
+	"resource.project_id":           "project_id",
+	"resource.projectId":            "project_id",
+	"resource.project_display_name": "project_display_name",
+	"resource.projectDisplayName":   "project_display_name",
+
+	// Timestamps
+	"finding.event_time":  "event_time",
+	"finding.eventTime":   "event_time",
+	"finding.create_time": "create_time",
+	"finding.createTime":  "create_time",
+
+	// Text fields
+	"finding.description":  "description",
+	"finding.external_uri": "external_uri",
+	"finding.externalUri":  "external_uri",
+	"finding.nextSteps":    "finding.next_steps",
+}
+
 // Parser parses GCP Security Command Center CSV exports into Finding structs.
 type Parser struct {
 	logger *utils.Logger
@@ -89,11 +129,30 @@ func (p *Parser) Parse(r io.Reader) ([]*models.Finding, int, error) {
 }
 
 // buildIndex creates a column-name → index map from the header row.
+// It performs two passes: first it indexes every column by its exact header
+// name, then it registers canonical aliases from columnAliases so that
+// parseRow() works regardless of whether the CSV uses bare names or dotted
+// GCP SCC API paths. Existing bare-name entries are never overwritten
+// ("first column wins"), ensuring backward compatibility.
 func buildIndex(header []string) fieldIndex {
 	idx := make(fieldIndex, len(header))
+
+	// First pass: index every column by its exact header name.
 	for i, col := range header {
 		idx[strings.TrimSpace(col)] = i
 	}
+
+	// Second pass: for each column that has a known canonical alias,
+	// add the canonical name to the index only if it is not already present.
+	for i, col := range header {
+		col = strings.TrimSpace(col)
+		if canonical, ok := columnAliases[col]; ok {
+			if _, exists := idx[canonical]; !exists {
+				idx[canonical] = i
+			}
+		}
+	}
+
 	return idx
 }
 

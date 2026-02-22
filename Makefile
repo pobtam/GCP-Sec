@@ -4,7 +4,7 @@ BUILD_DIR := ./dist
 VERSION   := 1.0.0
 LDFLAGS   := -ldflags="-X main.version=$(VERSION) -s -w"
 
-.PHONY: all build test test-cover lint clean install run-sample help
+.PHONY: all build test test-cover lint clean install run-sample run-fetch help
 
 all: build
 
@@ -68,6 +68,18 @@ run-all-formats: build
 		--formats markdown,json,html,csv \
 		--include-remediation \
 		--include-compliance
+
+## run-fetch: Fetch findings from GCP SCC and analyze (requires ORG_ID env var)
+run-fetch: build
+	@if [ -z "$(ORG_ID)" ]; then echo "Error: ORG_ID is required. Usage: make run-fetch ORG_ID=123456789"; exit 1; fi
+	@mkdir -p reports
+	$(BUILD_DIR)/$(BINARY) fetch --org-id $(ORG_ID) \
+		--days $(or $(DAYS),7) \
+		--output reports/scc-report.md \
+		--include-remediation \
+		--include-compliance \
+		--verbose
+	@echo "✓ Report written to reports/scc-report.md"
 
 ## stats-sample: Show statistics for the sample CSV
 stats-sample: build

@@ -43,6 +43,8 @@ func Execute(args []string) int {
 	switch cmd {
 	case "analyze":
 		return runAnalyze(remaining)
+	case "fetch":
+		return runFetch(remaining)
 	case "stats":
 		return runStats(remaining)
 	case "filter":
@@ -64,14 +66,21 @@ func printUsage() {
 	fmt.Print(`gcp-security-analyzer - GCP Security Command Center findings analyzer
 
 USAGE:
-  gcp-security-analyzer <command> [options] <input.csv>
+  gcp-security-analyzer <command> [options] [input.csv]
 
 COMMANDS:
-  analyze     Analyze findings and generate a report
+  analyze     Analyze findings from a CSV file and generate a report
+  fetch       Fetch findings live from GCP SCC API and analyze
   stats       Show statistics summary
   filter      Filter findings and export to CSV
   help        Show this help
   version     Show version
+
+FETCH OPTIONS:
+      --org-id <id>            GCP organization ID (required)
+      --days <n>               Lookback window in days (default: 7)
+      --save-csv <path>        Save raw fetched findings as CSV
+  (All analyze options below also apply to fetch)
 
 ANALYZE OPTIONS:
   -o, --output <path>         Output file path (default: report.md)
@@ -104,6 +113,8 @@ EXAMPLES:
   gcp-security-analyzer analyze findings.csv
   gcp-security-analyzer analyze findings.csv -o report.md --include-remediation
   gcp-security-analyzer analyze findings.csv --formats markdown,json,html -d ./reports
+  gcp-security-analyzer fetch --org-id 123456789 --days 7 -o report.md
+  gcp-security-analyzer fetch --org-id 123456789 --days 30 --save-csv raw.csv --include-remediation
   gcp-security-analyzer stats findings.csv
   gcp-security-analyzer filter findings.csv --priority high,critical -o high-findings.csv
 `)

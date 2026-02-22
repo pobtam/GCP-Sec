@@ -9,12 +9,7 @@ import (
 
 	"github.com/wanaware/gcp-security-analyzer/internal/models"
 	"github.com/wanaware/gcp-security-analyzer/internal/utils"
-	"github.com/wanaware/gcp-security-analyzer/pkg/compliance"
-	"github.com/wanaware/gcp-security-analyzer/pkg/llm"
 	"github.com/wanaware/gcp-security-analyzer/pkg/parser"
-	"github.com/wanaware/gcp-security-analyzer/pkg/remediation"
-	"github.com/wanaware/gcp-security-analyzer/pkg/report"
-	"github.com/wanaware/gcp-security-analyzer/pkg/scoring"
 )
 
 // analyzeValueFlags lists flags for the analyze command that take a value argument.
@@ -103,114 +98,16 @@ func runAnalyze(args []string) int {
 	}
 	logger.Info("Parsed %d findings (%d parse errors)", len(findings), parseErrors)
 
-	// ── Score findings ─────────────────────────────────────────────────────────
-	logger.Info("Scoring %d findings...", len(findings))
-	engine := scoring.NewEngine(scoring.DefaultConfig(), logger)
-	engine.ScoreAll(findings)
-
-	// ── Compliance detection ───────────────────────────────────────────────────
-	detector := compliance.NewDetector()
-	for _, f := range findings {
-		detector.DetectViolations(f)
-	}
-
-	// ── Remediation guidance ───────────────────────────────────────────────────
-	if af.IncludeRemediation {
-		logger.Info("Generating remediation guidance...")
-		gen := remediation.NewGenerator()
-		gen.GenerateAll(findings)
-	}
-
-	// ── AI enrichment (optional) ───────────────────────────────────────────────
-	// Runs after remediation so the LLM can replace template scripts with
-	// context-aware, resource-specific scripts for CRITICAL findings.
-	if af.AIEnhance {
-		apiKey := os.Getenv("ANTHROPIC_API_KEY")
-		if apiKey == "" {
-			fmt.Fprintln(os.Stderr, "Warning: --ai-enhance set but ANTHROPIC_API_KEY is not set; skipping AI enrichment")
-		} else {
-			logger.Info("AI-enhancing CRITICAL findings via Claude API...")
-			enricher := llm.NewEnricher(apiKey, logger)
-			enricher.EnrichAll(findings)
-		}
-	}
-
-	// ── Apply filters ──────────────────────────────────────────────────────────
-	filtered := applyFilters(findings, af)
-	logger.Info("Findings after filtering: %d", len(filtered))
-
-	// ── Build report ───────────────────────────────────────────────────────────
-	builder := report.NewBuilder()
-	r := builder.Build(filtered, inputFile, parseErrors)
-
-	if af.IncludeCompliance {
-		r.ComplianceSummary = detector.Aggregate(filtered)
-	}
-
-	// ── Print summary to stdout ────────────────────────────────────────────────
-	printSummary(r)
-
-	// ── Write report(s) ────────────────────────────────────────────────────────
-	formats := resolveFormats(af)
+	// ── Run analysis pipeline ──────────────────────────────────────────────────
 	baseName := strings.TrimSuffix(filepath.Base(inputFile), filepath.Ext(inputFile)) + "-report"
-
-	outDir := af.OutputDir
-	if af.OutputDir != "" || len(formats) > 1 {
-		if outDir == "" {
-			outDir = "."
-		}
-		if af.SplitByPriority {
-			for _, fmtName := range formats {
-				written, err := report.WriteSplitByPriority(r, fmtName, outDir, baseName)
-				if err != nil {
-					fmt.Fprintf(os.Stderr, "Error writing split reports: %v\n", err)
-					return 1
-				}
-				for _, path := range written {
-					fmt.Printf("  Wrote: %s\n", path)
-				}
-			}
-		} else {
-			written, err := report.WriteReports(r, formats, outDir, baseName)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "Error writing reports: %v\n", err)
-				return 1
-			}
-			for _, path := range written {
-				fmt.Printf("  Wrote: %s\n", path)
-			}
-		}
-	} else {
-		// Single output file
-		outPath := af.Output
-		fmtName := formats[0]
-		if err := report.WriteReport(r, fmtName, outPath); err != nil {
-			fmt.Fprintf(os.Stderr, "Error writing report: %v\n", err)
-			return 1
-		}
-		fmt.Printf("\nReport written to: %s\n", outPath)
-		outDir = filepath.Dir(outPath)
-		if outDir == "" {
-			outDir = "."
-		}
-	}
-
-	// ── Write per-finding remediation scripts ──────────────────────────────────
-	if af.IncludeRemediation {
-		scriptFiles, err := report.WriteRemediationScripts(r, outDir)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Warning: error writing remediation scripts: %v\n", err)
-		}
-		for _, path := range scriptFiles {
-			fmt.Printf("  Script: %s\n", path)
-		}
-		if len(scriptFiles) > 0 {
-			fmt.Printf("  [%d remediation script(s) in %s/remediation-scripts/]\n",
-				len(scriptFiles), outDir)
-		}
-	}
-
-	return 0
+	return runPipeline(PipelineInput{
+		Findings:    findings,
+		SourceLabel: inputFile,
+		BaseName:    baseName,
+		ParseErrors: parseErrors,
+		Flags:       af,
+		Logger:      logger,
+	})
 }
 
 // applyFilters applies all active filters to the findings slice.
