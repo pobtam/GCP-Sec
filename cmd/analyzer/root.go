@@ -83,10 +83,11 @@ FETCH OPTIONS:
   (All analyze options below also apply to fetch)
 
 ANALYZE OPTIONS:
-  -o, --output <path>         Output file path (default: report.md)
-  -f, --format <fmt>          Output format: markdown, json, html, csv (default: markdown)
-  -d, --output-dir <dir>      Output directory (when using --formats)
-      --formats <fmt,...>      Comma-separated formats for multi-format output
+  -o, --output <path>         Output file path; stem sets the base name for multi-format output
+  -f, --format <fmt>          Single output format: markdown, html, json, csv
+                              (omit to use default: both markdown + html)
+  -d, --output-dir <dir>      Output directory (overrides directory derived from -o)
+      --formats <fmt,...>      Comma-separated formats (e.g. markdown,html,json)
   -p, --priority <p,...>      Filter: critical,high,medium,low
   -c, --category <c,...>      Filter by category
       --project <p,...>        Filter by GCP project ID
@@ -111,9 +112,15 @@ FILTER OPTIONS:
 
 EXAMPLES:
   gcp-security-analyzer analyze findings.csv
-  gcp-security-analyzer analyze findings.csv -o report.md --include-remediation
+      # writes findings-report.md + findings-report.html (default)
+  gcp-security-analyzer analyze findings.csv -o security-report.md --include-remediation
+      # writes security-report.md + security-report.html
+  gcp-security-analyzer analyze findings.csv --format json -o report.json
+      # single format override
   gcp-security-analyzer analyze findings.csv --formats markdown,json,html -d ./reports
+      # explicit multi-format into a directory
   gcp-security-analyzer fetch --org-id 123456789 --days 7 -o report.md
+      # writes report.md + report.html
   gcp-security-analyzer fetch --org-id 123456789 --days 30 --save-csv raw.csv --include-remediation
   gcp-security-analyzer stats findings.csv
   gcp-security-analyzer filter findings.csv --priority high,critical -o high-findings.csv

@@ -54,10 +54,10 @@ func runAnalyze(args []string) int {
 	fs := flag.NewFlagSet("analyze", flag.ContinueOnError)
 	af := &AnalyzeFlags{}
 
-	fs.StringVar(&af.Output, "output", "report.md", "Output file path")
-	fs.StringVar(&af.Output, "o", "report.md", "Output file path (shorthand)")
-	fs.StringVar(&af.Format, "format", "markdown", "Output format")
-	fs.StringVar(&af.Format, "f", "markdown", "Output format (shorthand)")
+	fs.StringVar(&af.Output, "output", "", "Output file path (e.g. report.md); stem is used for multi-format output")
+	fs.StringVar(&af.Output, "o", "", "Output file path (shorthand)")
+	fs.StringVar(&af.Format, "format", "", "Single output format: markdown, html, json, csv (default: generates markdown+html)")
+	fs.StringVar(&af.Format, "f", "", "Output format (shorthand)")
 	fs.StringVar(&af.OutputDir, "output-dir", "", "Output directory")
 	fs.StringVar(&af.OutputDir, "d", "", "Output directory (shorthand)")
 	fs.StringVar(&af.Formats, "formats", "", "Comma-separated output formats")
@@ -176,11 +176,15 @@ func applyFilters(findings []*models.Finding, af *AnalyzeFlags) []*models.Findin
 }
 
 // resolveFormats returns the list of output formats to generate.
+// Priority: --formats > --format > default (markdown + html).
 func resolveFormats(af *AnalyzeFlags) []string {
 	if af.Formats != "" {
 		return splitFields(af.Formats)
 	}
-	return []string{af.Format}
+	if af.Format != "" {
+		return []string{af.Format}
+	}
+	return []string{"markdown", "html"}
 }
 
 // printSummary prints a quick stats summary to stdout.

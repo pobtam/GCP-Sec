@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/wanaware/gcp-security-analyzer/internal/models"
 	"github.com/wanaware/gcp-security-analyzer/internal/utils"
@@ -93,8 +94,19 @@ func runPipeline(input PipelineInput) int {
 	formats := resolveFormats(af)
 	baseName := input.BaseName
 
+	// When -o is provided, its stem and directory take precedence over the
+	// input-file-derived baseName (e.g. -o security-report.md → stem "security-report").
 	outDir := af.OutputDir
-	if af.OutputDir != "" || len(formats) > 1 {
+	if af.Output != "" && outDir == "" {
+		if dir := filepath.Dir(af.Output); dir != "" && dir != "." {
+			outDir = dir
+		}
+		if stem := strings.TrimSuffix(filepath.Base(af.Output), filepath.Ext(af.Output)); stem != "" {
+			baseName = stem
+		}
+	}
+
+	if outDir != "" || len(formats) > 1 {
 		if outDir == "" {
 			outDir = "."
 		}
@@ -120,9 +132,12 @@ func runPipeline(input PipelineInput) int {
 			}
 		}
 	} else {
-		// Single output file
+		// Single format explicitly requested via --format or --formats with one entry.
 		outPath := af.Output
 		fmtName := formats[0]
+		if outPath == "" {
+			outPath = baseName + "." + report.FormatExtension(fmtName)
+		}
 		if err := report.WriteReport(r, fmtName, outPath); err != nil {
 			fmt.Fprintf(os.Stderr, "Error writing report: %v\n", err)
 			return 1

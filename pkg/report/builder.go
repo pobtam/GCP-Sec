@@ -223,7 +223,7 @@ func WriteReports(r *models.Report, formats []string, outputDir, baseName string
 
 	var written []string
 	for _, fmt := range formats {
-		ext := formatExtension(fmt)
+		ext := FormatExtension(fmt)
 		path := filepath.Join(outputDir, baseName+"."+ext)
 		if err := WriteReport(r, fmt, path); err != nil {
 			return written, fmt2Errorf("writing %s report: %w", fmt, err)
@@ -270,7 +270,7 @@ func WriteSplitByPriority(r *models.Report, format, outputDir, baseName string) 
 		}
 		pReport.Stats = stats
 
-		ext := formatExtension(format)
+		ext := FormatExtension(format)
 		path := filepath.Join(outputDir, baseName+"-"+strings.ToLower(priority)+"."+ext)
 		if err := WriteReport(&pReport, format, path); err != nil {
 			return written, err
@@ -280,7 +280,8 @@ func WriteSplitByPriority(r *models.Report, format, outputDir, baseName string) 
 	return written, nil
 }
 
-func formatExtension(format string) string {
+// FormatExtension returns the file extension for a given format name.
+func FormatExtension(format string) string {
 	switch strings.ToLower(format) {
 	case "markdown", "md":
 		return "md"

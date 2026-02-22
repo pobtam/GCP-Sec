@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>GCP Security Analyzer — Architecture & Workflow</title>
+<style>
+/* ── Variables ─────────────────────────────────────────────── */
+:root {
+  --blue:    #2563eb;
+  --blue-bg: #eff6ff;
+  --navy:    #0f172a;
+  --page-bg: #f1f5f9;
+  --card:    #ffffff;
+  --border:  #e2e8f0;
+  --t1: #0f172a;
+  --t2: #475569;
+  --t3: #94a3b8;
+  --stage-1: #7c3aed;
+  --stage-2: #dc2626;
+  --stage-3: #b45309;
+  --stage-4: #166534;
+  --stage-5: #0369a1;
+  --stage-6: #6b21a8;
+  --stage-7: #0f172a;
+}
+
+/* ── Reset ─────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── Base ──────────────────────────────────────────────────── */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--t1);
+  background: var(--page-bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Layout ────────────────────────────────────────────────── */
+.layout { display: flex; min-height: 100vh; }
+
+/* ── Sidebar ───────────────────────────────────────────────── */
+nav {
+  width: 230px;
+  flex-shrink: 0;
+  background: var(--navy);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #334155 transparent;
+}
+nav::-webkit-scrollbar { width: 3px; }
+nav::-webkit-scrollbar-thumb { background: #334155; border-radius: 2px; }
+
+.nav-brand {
+  padding: 20px 16px 16px;
+  border-bottom: 1px solid rgba(255,255,255,.07);
+}
+.nav-brand .title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #f8fafc;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  line-height: 1.4;
+}
+.nav-brand .sub {
+  font-size: 11px;
+  color: var(--t3);
+  margin-top: 2px;
+}
+
+.nav-section {
+  padding: 14px 10px 6px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: #64748b;
+}
+
+nav a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 16px;
+  font-size: 12.5px;
+  color: #94a3b8;
+  text-decoration: none;
+  border-left: 2px solid transparent;
+  transition: color .15s, background .15s, border-color .15s;
+}
+nav a:hover {
+  color: #f1f5f9;
+  background: rgba(255,255,255,.05);
+  border-left-color: #334155;
+}
+nav a .dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: #334155;
+}
+nav a.s1 .dot { background: #7c3aed; }
+nav a.s2 .dot { background: #dc2626; }
+nav a.s3 .dot { background: #b45309; }
+nav a.s4 .dot { background: #166534; }
+nav a.s5 .dot { background: #0369a1; }
+nav a.s6 .dot { background: #6b21a8; }
+nav a.s7 .dot { background: #0f172a; border: 1px solid #475569; }
+
+/* ── Main ──────────────────────────────────────────────────── */
+main {
+  flex: 1;
+  min-width: 0;
+  padding: 36px 40px 64px;
+  max-width: 960px;
+}
+
+/* ── Page header ───────────────────────────────────────────── */
+.page-header {
+  margin-bottom: 36px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--border);
+}
+.page-header h1 {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--t1);
+  line-height: 1.25;
+}
+.page-header .tagline {
+  font-size: 14px;
+  color: var(--t2);
+  margin-top: 6px;
+}
+
+/* ── Cards ─────────────────────────────────────────────────── */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-bottom: 28px;
+  overflow: hidden;
+}
+.card-head {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.card-head h2 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--t1);
+}
+.card-body { padding: 20px; }
+
+/* ── Section headers ───────────────────────────────────────── */
+.sec-head {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--t1);
+  margin: 40px 0 12px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--border);
+}
+.sec-head:first-child { margin-top: 0; }
+
+h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--t1);
+  margin: 20px 0 8px;
+}
+
+p { color: var(--t2); margin-bottom: 10px; }
+p:last-child { margin-bottom: 0; }
+
+/* ── Stage badge ───────────────────────────────────────────── */
+.stage-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+.sb-1 { background: #ede9fe; color: #5b21b6; }
+.sb-2 { background: #fee2e2; color: #991b1b; }
+.sb-3 { background: #fef3c7; color: #92400e; }
+.sb-4 { background: #dcfce7; color: #14532d; }
+.sb-5 { background: #e0f2fe; color: #075985; }
+.sb-6 { background: #f3e8ff; color: #6b21a8; }
+.sb-7 { background: #f1f5f9; color: #334155; }
+
+/* ── Flow diagram ──────────────────────────────────────────── */
+.flow {
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 12.5px;
+  line-height: 1.6;
+  background: #0f172a;
+  color: #e2e8f0;
+  border-radius: 8px;
+  padding: 20px 24px;
+  overflow-x: auto;
+  white-space: pre;
+  margin: 16px 0;
+}
+.flow .comment { color: #64748b; }
+.flow .hl      { color: #7dd3fc; }
+.flow .hl2     { color: #86efac; }
+.flow .hl3     { color: #fcd34d; }
+
+/* ── Code blocks ───────────────────────────────────────────── */
+pre {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 12.5px;
+  line-height: 1.6;
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px 18px;
+  overflow-x: auto;
+  white-space: pre;
+  margin: 12px 0;
+  color: var(--t1);
+}
+
+code {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 12px;
+  background: #f1f5f9;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 5px;
+  color: var(--t1);
+}
+
+/* ── Tables ────────────────────────────────────────────────── */
+.tbl-outer {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin: 12px 0;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+thead tr {
+  background: #f8fafc;
+}
+th {
+  padding: 9px 14px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--t2);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+td {
+  padding: 9px 14px;
+  border-bottom: 1px solid #f1f5f9;
+  color: var(--t2);
+  vertical-align: top;
+}
+tr:last-child td { border-bottom: none; }
+tbody tr:hover { background: #f8fafc; }
+td code { font-size: 11.5px; }
+
+/* ── Lists ─────────────────────────────────────────────────── */
+ul, ol {
+  padding-left: 20px;
+  color: var(--t2);
+  margin: 8px 0;
+}
+li { margin-bottom: 4px; }
+li:last-child { margin-bottom: 0; }
+
+/* ── Callout boxes ─────────────────────────────────────────── */
+.callout {
+  border-left: 3px solid var(--blue);
+  background: var(--blue-bg);
+  border-radius: 0 6px 6px 0;
+  padding: 12px 16px;
+  margin: 14px 0;
+  font-size: 13px;
+  color: #1e40af;
+}
+.callout strong { font-weight: 600; }
+
+/* ── Dir tree ──────────────────────────────────────────────── */
+.tree {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 12.5px;
+  line-height: 1.7;
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px 18px;
+  overflow-x: auto;
+  white-space: pre;
+  color: var(--t1);
+  margin: 12px 0;
+}
+.tree .dim { color: var(--t3); }
+
+/* ── Scoring row highlight ─────────────────────────────────── */
+.sc-c { background: #fef2f2; }
+.sc-h { background: #fffbeb; }
+.sc-m { background: #fefce8; }
+.sc-l { background: #f0fdf4; }
+
+/* ── Print ─────────────────────────────────────────────────── */
+@media print {
+  nav { display: none; }
+  main { padding: 20px; max-width: 100%; }
+  .card { break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<!-- ───────────── SIDEBAR ───────────── -->
+<nav>
+  <div class="nav-brand">
+    <div class="title">GCP Security<br>Analyzer</div>
+    <div class="sub">Architecture &amp; Workflow</div>
+  </div>
+
+  <div class="nav-section">Overview</div>
+  <a href="#overview"><span class="dot"></span>Overview</a>
+  <a href="#structure"><span class="dot"></span>Directory Structure</a>
+  <a href="#dataflow"><span class="dot"></span>Data Flow</a>
+  <a href="#cli"><span class="dot"></span>CLI Commands</a>
+
+  <div class="nav-section">Pipeline Stages</div>
+  <a href="#stage1" class="s1"><span class="dot"></span>1 · Ingestion</a>
+  <a href="#stage2" class="s2"><span class="dot"></span>2 · Risk Scoring</a>
+  <a href="#stage3" class="s3"><span class="dot"></span>3 · Compliance</a>
+  <a href="#stage4" class="s4"><span class="dot"></span>4 · Remediation</a>
+  <a href="#stage5" class="s5"><span class="dot"></span>5 · AI Enrichment</a>
+  <a href="#stage6" class="s6"><span class="dot"></span>6 · Filtering</a>
+  <a href="#stage7" class="s7"><span class="dot"></span>7 · Report Output</a>
+
+  <div class="nav-section">Reference</div>
+  <a href="#models"><span class="dot"></span>Data Models</a>
+  <a href="#examples"><span class="dot"></span>Examples</a>
+  <a href="#design"><span class="dot"></span>Design Decisions</a>
+</nav>
+
+<!-- ───────────── MAIN ───────────── -->
+<main>
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <h1>GCP Security Analyzer</h1>
+    <div class="tagline">Architecture &amp; End-to-End Workflow Documentation</div>
+  </div>
+
+  <!-- OVERVIEW -->
+  <h2 class="sec-head" id="overview">Overview</h2>
+  <p>GCP Security Analyzer is a command-line tool that ingests security findings from <strong>Google Cloud Security Command Center (SCC)</strong> — either from a CSV export or directly via the live SCC API — and produces prioritized, enriched security reports in multiple formats (Markdown, HTML, JSON, CSV) along with executable remediation scripts.</p>
+
+  <div class="flow"><span class="hl">Input</span>  (CSV export  OR  live GCP SCC API)
+     │
+     ▼
+<span class="hl2">Parse Findings</span>         → []*Finding  (raw, unscored)
+     │
+     ▼
+<span class="hl2">Risk Scoring</span>           → RiskScore.Total (0-100) + Priority assigned
+     │
+     ▼
+<span class="hl2">Compliance Detection</span>   → Violations annotated per finding
+     │
+     ▼
+<span class="hl2">Remediation Guidance</span>   → Steps, effort, scripts  (--include-remediation)
+     │
+     ▼
+<span class="hl2">AI Enrichment</span>          → Claude API overwrites rationale + scripts  (--ai-enhance)
+     │
+     ▼
+<span class="hl2">Filtering</span>              → Subset by priority, category, project, risk score
+     │
+     ▼
+<span class="hl2">Report Generation</span>      → markdown + html (default); json / csv optional
+     │
+     └─→  <span class="hl3">remediation-scripts/</span>  *.sh  *.py</div>
+
+  <!-- DIRECTORY STRUCTURE -->
+  <h2 class="sec-head" id="structure">Directory Structure</h2>
+  <div class="tree">GCP-Sec/
+├── main.go                         <span class="dim">Entry point</span>
+├── cmd/analyzer/
+│   ├── root.go                     <span class="dim">Command dispatcher &amp; help text</span>
+│   ├── analyze.go                  <span class="dim">"analyze" command — CSV-based analysis</span>
+│   ├── fetch.go                    <span class="dim">"fetch" command  — live GCP SCC API</span>
+│   ├── pipeline.go                 <span class="dim">Shared analysis pipeline (scoring → output)</span>
+│   ├── filter.go                   <span class="dim">"filter" command — CSV → filtered CSV</span>
+│   └── stats.go                    <span class="dim">"stats" command  — console summary</span>
+├── internal/
+│   ├── models/
+│   │   ├── finding.go              <span class="dim">Finding struct + methods</span>
+│   │   ├── report.go               <span class="dim">Report, ReportStats, Options structs</span>
+│   │   └── risk_score.go           <span class="dim">RiskScore, ComplianceViolation, RemediationStep</span>
+│   └── utils/
+│       ├── helpers.go              <span class="dim">Math (mean, median, stddev) + string utilities</span>
+│       ├── flags.go                <span class="dim">ExtractPositional — positional vs flag args</span>
+│       └── logger.go               <span class="dim">Leveled logger (Debug / Info / Warn / Error)</span>
+├── pkg/
+│   ├── parser/csv.go               <span class="dim">CSV reader + GCP column alias mapping</span>
+│   ├── scoring/
+│   │   ├── risk.go                 <span class="dim">Multi-factor 0-100 scoring engine (8 goroutines)</span>
+│   │   └── priorities.go           <span class="dim">Filter, sort, group, compute stats on findings</span>
+│   ├── compliance/
+│   │   ├── detector.go             <span class="dim">Parse compliance JSON + aggregate violations</span>
+│   │   └── frameworks.go           <span class="dim">CIS, PCI-DSS, HIPAA, SOC2, ISO 27001, NIST, GDPR</span>
+│   ├── remediation/
+│   │   ├── guidance.go             <span class="dim">Category-specific steps, effort, automation hints</span>
+│   │   └── scripts.go              <span class="dim">Bash/Python3 automation script generation</span>
+│   ├── llm/enricher.go             <span class="dim">Claude API enrichment for CRITICAL findings</span>
+│   ├── fetcher/
+│   │   ├── fetcher.go              <span class="dim">GCP SCC API client with pagination</span>
+│   │   └── convert.go              <span class="dim">Protobuf → models.Finding conversion</span>
+│   └── report/
+│       ├── builder.go              <span class="dim">Aggregate findings into Report with statistics</span>
+│       ├── markdown.go             <span class="dim">Markdown report generator</span>
+│       ├── html.go                 <span class="dim">Interactive single-file HTML report</span>
+│       ├── json.go                 <span class="dim">JSON export</span>
+│       └── csv.go                  <span class="dim">CSV export</span>
+└── remediation-scripts/            <span class="dim">Output directory for generated automation scripts</span></div>
+
+  <!-- DATA FLOW -->
+  <h2 class="sec-head" id="dataflow">High-Level Data Flow</h2>
+  <div class="flow"><span class="comment">┌─ INPUT ─────────────────────────────────────────────────────────┐</span>
+<span class="comment">│  CSV file (gcloud scc findings export / Console)               │</span>
+<span class="comment">│    OR  Live GCP SCC API (requires ADC + org ID)                │</span>
+<span class="comment">└──────────────────────────┬──────────────────────────────────────┘</span>
+                           │
+                           ▼  pkg/parser  OR  pkg/fetcher
+                   ┌───────────────┐
+                   │  []*Finding   │  Raw finding structs, unscored
+                   └───────┬───────┘
+                           │
+                           ▼  pkg/scoring  (8 goroutines)
+              ┌─────────────────────────────────┐
+              │  []*Finding (scored)             │
+              │  ├── RiskScore.Total  (0-100)    │
+              │  └── Priority  CRIT/HIGH/MED/LOW │
+              └───────┬─────────────────────────┘
+                      │
+                      ▼  pkg/compliance
+              ┌────────────────────────────────────┐
+              │  []*Finding + Violations[]          │
+              │  (CIS, PCI-DSS, HIPAA, SOC2, …)    │
+              └───────┬────────────────────────────┘
+                      │
+                      ▼  pkg/remediation  (--include-remediation)
+              ┌──────────────────────────────────────────┐
+              │  []*Finding + Remediation                │
+              │  ├── Summary, Steps, Effort, Automation  │
+              │  └── Script (bash/py, CRITICAL only)     │
+              └───────┬──────────────────────────────────┘
+                      │
+                      ▼  pkg/llm  (--ai-enhance, CRITICAL only)
+              ┌────────────────────────────────────────────┐
+              │  []*Finding (AI-enhanced)                  │
+              │  └── Rationale + Script overwritten        │
+              └───────┬────────────────────────────────────┘
+                      │
+                      ▼  cmd/analyzer.applyFilters
+              ┌────────────────────────────┐
+              │  []*Finding (filtered)     │
+              └───────┬────────────────────┘
+                      │
+                      ▼  pkg/report/builder
+              ┌───────────────────────────────────────────────────┐
+              │  *Report                                          │
+              │  ├── Stats (total, critical, high, medium, low)  │
+              │  ├── RiskStats (mean, median, min, max, stddev)   │
+              │  ├── CategoryBreakdown                           │
+              │  ├── ProjectBreakdown                            │
+              │  └── ComplianceSummary                           │
+              └────────┬──────────────────────────────────────────┘
+                       │
+             ┌─────────┴──────────┐
+             ▼                    ▼
+       .md + .html           remediation-scripts/
+       (.json / .csv          ├── <id>-remediate.sh
+        optional)             └── <id>-remediate.py</div>
+
+  <!-- CLI COMMANDS -->
+  <h2 class="sec-head" id="cli">CLI Commands</h2>
+
+  <div class="card">
+    <div class="card-head">
+      <div class="stage-badge sb-7">analyze</div>
+      <h2>Primary command — CSV input</h2>
+    </div>
+    <div class="card-body">
+      <p>Reads a CSV export from GCP SCC and runs the full analysis pipeline.</p>
+      <pre>gcp-security-analyzer analyze &lt;input.csv&gt; [options]
+
+-o, --output &lt;path&gt;       Output file; stem used for multi-format naming
+-f, --format &lt;fmt&gt;        Single format: markdown | html | json | csv
+    --formats &lt;list&gt;      Comma-separated (e.g. markdown,html,json)
+-d, --output-dir &lt;dir&gt;    Output directory
+-p, --priority &lt;list&gt;     Filter: CRITICAL,HIGH,MEDIUM,LOW
+-c, --category &lt;list&gt;     Filter by finding category
+    --project &lt;list&gt;      Filter by GCP project ID or display name
+    --min-risk-score &lt;n&gt;  Minimum risk score (0-100)
+    --max-risk-score &lt;n&gt;  Maximum risk score (0-100)
+    --include-remediation  Generate remediation steps and scripts
+    --include-compliance   Include compliance framework details
+    --ai-enhance           Enrich CRITICAL findings via Claude AI
+    --split-by-priority    Write separate file per priority level</pre>
+
+      <div class="callout">
+        <strong>Default behavior:</strong> no format flags → generates both <code>.md</code> and <code>.html</code> using the input filename stem.
+        <pre style="margin-top:8px">gcp-security-analyzer analyze findings.csv
+# → findings-report.md + findings-report.html
+
+gcp-security-analyzer analyze findings.csv -o security-report.md
+# → security-report.md + security-report.html</pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div class="stage-badge sb-7">fetch</div>
+      <h2>Live SCC API</h2>
+    </div>
+    <div class="card-body">
+      <p>Connects to the GCP Security Command Center API and retrieves live findings without needing a CSV export. Accepts all the same options as <code>analyze</code>.</p>
+      <pre>gcp-security-analyzer fetch --org-id &lt;ORG_ID&gt; [options]
+
+    --org-id &lt;id&gt;   GCP organization ID (required)
+    --days &lt;n&gt;      Lookback window in days (default 7)
+    --save-csv &lt;p&gt;  Also save raw findings as CSV before analysis</pre>
+      <p>Requires Application Default Credentials:</p>
+      <pre>gcloud auth application-default login</pre>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div class="stage-badge sb-7">stats</div>
+      <h2>Console summary (no files written)</h2>
+    </div>
+    <div class="card-body">
+      <pre>gcp-security-analyzer stats &lt;input.csv&gt; [-v]</pre>
+      <p>Prints priority distribution, risk score statistics (mean, median, range, stddev), top categories, top projects, and detected compliance frameworks to stdout. No output files are written.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div class="stage-badge sb-7">filter</div>
+      <h2>Export filtered CSV</h2>
+    </div>
+    <div class="card-body">
+      <pre>gcp-security-analyzer filter &lt;input.csv&gt; [filter options] -o filtered.csv</pre>
+      <p>Parses, scores, and filters findings, then writes the results as a new CSV. Useful for narrowing down findings for follow-up workflows.</p>
+    </div>
+  </div>
+
+  <!-- STAGE 1 -->
+  <h2 class="sec-head" id="stage1">
+    <span class="stage-badge sb-1" style="margin-right:8px">Stage 1</span>
+    Ingestion
+  </h2>
+
+  <h3>Path A: CSV (<code>pkg/parser/csv.go</code>)</h3>
+  <p>The parser reads a CSV produced by <code>gcloud scc findings list --format=csv</code> or exported from the GCP Console.</p>
+
+  <p><strong>Column normalization:</strong> GCP's CSV uses dotted API paths as headers. The parser maps them to short canonical names via a <code>columnAliases</code> map:</p>
+
+  <div class="tbl-outer">
+    <table>
+      <thead><tr><th>CSV column (GCP API path)</th><th>Canonical name</th></tr></thead>
+      <tbody>
+        <tr><td><code>finding.category</code></td><td><code>category</code></td></tr>
+        <tr><td><code>finding.severity</code></td><td><code>severity</code></td></tr>
+        <tr><td><code>resource.project_id</code></td><td><code>project_id</code></td></tr>
+        <tr><td><code>finding.vulnerability.cve.id</code></td><td>parsed → <code>Finding.CVEID</code></td></tr>
+        <tr><td><code>finding.compliances</code></td><td>parsed → <code>Finding.ComplianceFrameworks</code></td></tr>
+        <tr><td><code>finding.external_exposure.public_ip_address</code></td><td>parsed → <code>Finding.PublicIPAddress</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p><strong>Processing steps:</strong></p>
+  <ol>
+    <li>Read header row → build column-index map with alias lookups</li>
+    <li>For each data row: extract fields, parse JSON sub-objects, parse timestamps</li>
+    <li>Return <code>[]*models.Finding</code> plus count of non-fatal parse errors</li>
+  </ol>
+
+  <h3>Path B: Live API (<code>pkg/fetcher/</code>)</h3>
+  <p><code>fetcher.go</code> connects to the GCP SCC API using Application Default Credentials and lists all <code>ACTIVE</code> findings for the organization within the lookback window, handling pagination automatically (1,000 findings per page).</p>
+  <p><code>convert.go</code> converts protobuf response objects to <code>*models.Finding</code>: maps GCP enum values to clean strings (<code>FINDING_CLASS_VULNERABILITY</code> → <code>VULNERABILITY</code>), converts protobuf timestamps, and serializes nested fields to the JSON format expected by the compliance detector.</p>
+
+  <!-- STAGE 2 -->
+  <h2 class="sec-head" id="stage2">
+    <span class="stage-badge sb-2" style="margin-right:8px">Stage 2</span>
+    Risk Scoring
+  </h2>
+
+  <p>Every finding receives a numeric risk score from <strong>0 to 100</strong>. Scoring runs in parallel across 8 goroutines (<code>pkg/scoring/risk.go</code>).</p>
+
+  <h3>Scoring formula</h3>
+  <pre>Total = (BaseSeverity + CVSS + Exploitability + ClassModifier + Exposure + Compliance) × CategoryWeight</pre>
+
+  <div class="tbl-outer">
+    <table>
+      <thead><tr><th>Component</th><th>Max pts</th><th>How it's calculated</th></tr></thead>
+      <tbody>
+        <tr class="sc-c"><td><strong>Base Severity</strong></td><td>40</td><td>CRITICAL=40, HIGH=30, MEDIUM=20, LOW=10</td></tr>
+        <tr class="sc-h"><td><strong>CVSS</strong></td><td>30</td><td>CVSS score × 3, capped at 30</td></tr>
+        <tr class="sc-m"><td><strong>Exploitability</strong></td><td>20</td><td>In-the-wild=+10, zero-day=+8, active=+6, POC=+4, low=+2, has CVE=+2</td></tr>
+        <tr><td><strong>Class Modifier</strong></td><td>10</td><td>THREAT=10, VULNERABILITY=7, MISCONFIGURATION=5, OBSERVATION=2</td></tr>
+        <tr><td><strong>Exposure</strong></td><td>10</td><td>Public IP=+5, internet-facing=+3, critical resource type=+2</td></tr>
+        <tr><td><strong>Compliance</strong></td><td>10</td><td>Has frameworks=+5, has details=+3, audit/logging category=+2</td></tr>
+        <tr><td><strong>Category Weight</strong></td><td>×0.8–1.2</td><td>High-risk categories (VULN, PRIVILEGE_ESCALATION…)=1.2×; medium=1.0×; low=0.8×</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Severity floor</h3>
+  <p>GCP's severity label is treated as authoritative. The computed score is never allowed to fall below the band that corresponds to GCP's severity:</p>
+
+  <div class="tbl-outer">
+    <table>
+      <thead><tr><th>GCP Severity</th><th>Minimum score enforced</th></tr></thead>
+      <tbody>
+        <tr class="sc-c"><td>CRITICAL</td><td>75</td></tr>
+        <tr class="sc-h"><td>HIGH</td><td>55</td></tr>
+        <tr><td>MEDIUM / LOW</td><td>No floor</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Priority assignment</h3>
+  <div class="tbl-outer">
+    <table>
+      <thead><tr><th>Score range</th><th>Priority</th></tr></thead>
+      <tbody>
+        <tr class="sc-c"><td>75 – 100</td><td>CRITICAL</td></tr>
+        <tr class="sc-h"><td>55 – 74</td><td>HIGH</td></tr>
+        <tr class="sc-m"><td>35 – 54</td><td>MEDIUM</td></tr>
+        <tr class="sc-l"><td>0 – 34</td><td>LOW</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- STAGE 3 -->
+  <h2 class="sec-head" id="stage3">
+    <span class="stage-badge sb-3" style="margin-right:8px">Stage 3</span>
+    Compliance Detection
+  </h2>
+
+  <p>The detector (<code>pkg/compliance/detector.go</code>) parses two raw JSON fields from each finding:</p>
+  <ul>
+    <li><code>finding.compliances</code> → <code>[{"standard":"CIS","version":"1.2","ids":["3.1"]}]</code></li>
+    <li><code>finding.compliance_details.frameworks</code> → <code>[{"name":"ISO27001","controls":["A.12.4"]}]</code></li>
+  </ul>
+
+  <p>Framework names are normalized to canonical IDs:</p>
+  <div class="tbl-outer">
+    <table>
+      <thead><tr><th>Observed names</th><th>Canonical ID</th></tr></thead>
+      <tbody>
+        <tr><td>CIS, CIS_BENCHMARK, CISGCP, CIS_GCP</td><td><code>CIS</code></td></tr>
+        <tr><td>PCI, PCIDSS, PCI_DSS</td><td><code>PCI_DSS</code></td></tr>
+        <tr><td>HIPAA</td><td><code>HIPAA</code></td></tr>
+        <tr><td>SOC2, SOC 2, SOC_2</td><td><code>SOC_2</code></td></tr>
+        <tr><td>ISO27001, ISO 27001, ISO_27001</td><td><code>ISO_27001</code></td></tr>
+        <tr><td>NIST, NIST_CSF, NIST CSF</td><td><code>NIST</code></td></tr>
+        <tr><td>GDPR</td><td><code>GDPR</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>Results are stored on <code>Finding.Violations</code> and aggregated into <code>Report.ComplianceSummary</code> grouped by framework → control with occurrence counts.</p>
+
+  <!-- STAGE 4 -->
+  <h2 class="sec-head" id="stage4">
+    <span class="stage-badge sb-4" style="margin-right:8px">Stage 4</span>
+    Remediation Guidance
+  </h2>
+
+  <p>Activated with <code>--include-remediation</code>. Populates <code>Finding.Remediation</code> for every finding (<code>pkg/remediation/guidance.go</code>).</p>
+
+  <h3>Guidance fields (all findings)</h3>
+  <div class="tbl-outer">
+    <table>
+      <thead><tr><th>Field</th><th>Content</th></tr></thead>
+      <tbody>
+        <tr><td>Summary</td><td>One-line fix description tailored to category</td></tr>
+        <tr><td>EstimatedEffort</td><td>Low / Medium / High with time estimate</td></tr>
+        <tr><td>AutomationPotential</td><td>Automation level + example gcloud command</td></tr>
+        <tr><td>PriorityRationale</td><td>Why this finding scored its priority</td></tr>
+        <tr><td>NextSteps</td><td>Bullet list parsed from GCP's next_steps field</td></tr>
+        <tr><td>ResourceLinks</td><td>Category-specific documentation URLs</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Automation scripts — CRITICAL findings only (<code>pkg/remediation/scripts.go</code>)</h3>
+  <div class="tbl-outer">
+    <table>
+      <thead><tr><th>Category</th><th>Type</th><th>What it does</th></tr></thead>
+      <tbody>
+        <tr><td>VPC_FLOW_LOGS</td><td>Bash</td><td>Enables VPC flow logs on the affected subnet</td></tr>
+        <tr><td>PRIVATE_GOOGLE_ACCESS</td><td>Bash</td><td>Enables Private Google Access on subnet</td></tr>
+        <tr><td>BUCKET_LOGGING</td><td>Bash</td><td>Configures access logging on GCS bucket</td></tr>
+        <tr><td>AUDIT_LOGGING</td><td>Bash + Python3</td><td>Merges audit config to enable data access logs</td></tr>
+        <tr><td>FIREWALL_RULE_LOGGING</td><td>Bash</td><td>Enables logging on the firewall rule</td></tr>
+        <tr><td>OPEN_FIREWALL</td><td>Bash</td><td>Restricts public access by updating firewall rule</td></tr>
+        <tr><td>WEAK_SSL_POLICY</td><td>Bash</td><td>Creates and applies a modern TLS SSL policy</td></tr>
+        <tr><td>SERVICE_ACCOUNT_KEY</td><td>Bash</td><td>Lists and rotates/deletes service account keys</td></tr>
+        <tr><td>IAM_ANOMALY</td><td>Bash</td><td>Lists IAM bindings and recent audit changes</td></tr>
+        <tr><td>CONTAINER_IMAGE_VULNERABILITY</td><td>Python3</td><td>Queries Container Analysis, inspects affected pod</td></tr>
+        <tr><td>OS_VULNERABILITY</td><td>Python3</td><td>Checks OS Config report, initiates patch job</td></tr>
+        <tr><td><em>default</em></td><td>Bash</td><td>Inspects resource via Cloud Asset Inventory</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>All scripts include: a metadata header, GCP resource path variable extraction, a <code>DRY_RUN=true</code> guard, and <code>set -euo pipefail</code>. Scripts are written to <code>remediation-scripts/</code> with <code>0755</code> permissions.</p>
+
+  <!-- STAGE 5 -->
+  <h2 class="sec-head" id="stage5">
+    <span class="stage-badge sb-5" style="margin-right:8px">Stage 5</span>
+    AI Enrichment (optional)
+  </h2>
+
+  <p>Activated with <code>--ai-enhance</code>. Requires <code>ANTHROPIC_API_KEY</code> in the environment. Processes only <strong>CRITICAL</strong> findings, up to 4 concurrently (<code>pkg/llm/enricher.go</code>).</p>
+
+  <div class="tbl-outer">
+    <table>
+      <thead><tr><th>Parameter</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Endpoint</td><td><code>https://api.anthropic.com/v1/messages</code></td></tr>
+        <tr><td>Model</td><td><code>claude-haiku-4-5-20251001</code></td></tr>
+        <tr><td>Max tokens</td><td>1024</td></tr>
+        <tr><td>HTTP timeout</td><td>30 seconds</td></tr>
+        <tr><td>Concurrency</td><td>4 parallel calls</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>The prompt includes: category, severity, resource name, description, CVE ID, CVSS score, and GCP's next_steps. The API returns JSON with three fields:</p>
+  <pre>{
+  "risk_rationale":     "2-3 sentence explanation of the security risk",
+  "remediation_script": "complete runnable bash or python3 script",
+  "remediation_lang":   "bash"
+}</pre>
+
+  <p>The AI output overwrites <code>Finding.RiskScore.Rationale</code> and <code>Finding.Remediation.RemediationScript</code>. If the API call fails for any reason, the original template-based content is preserved and a warning is logged — processing continues.</p>
+
+  <!-- STAGE 6 -->
+  <h2 class="sec-head" id="stage6">
+    <span class="stage-badge sb-6" style="margin-right:8px">Stage 6</span>
+    Filtering
+  </h2>
+
+  <p>Applied after all enrichment stages so that every finding has been fully scored before being reduced (<code>cmd/analyzer/analyze.go → applyFilters</code>). Filters are cumulative:</p>
+
+  <div class="tbl-outer">
+    <table>
+      <thead><tr><th>Flag</th><th>Behavior</th></tr></thead>
+      <tbody>
+        <tr><td><code>-p CRITICAL,HIGH</code></td><td>Keep only findings with matching priority</td></tr>
+        <tr><td><code>-c FIREWALL,IAM</code></td><td>Keep only findings with matching category (case-insensitive)</td></tr>
+        <tr><td><code>--project my-project</code></td><td>Keep only findings where ProjectID or ProjectDisplayName matches</td></tr>
+        <tr><td><code>--min-risk-score 70</code></td><td>Keep only findings with RiskScore.Total ≥ 70</td></tr>
+        <tr><td><code>--max-risk-score 90</code></td><td>Keep only findings with RiskScore.Total ≤ 90</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- STAGE 7 -->
+  <h2 class="sec-head" id="stage7">
+    <span class="stage-badge sb-7" style="margin-right:8px">Stage 7</span>
+    Report Generation
+  </h2>
+
+  <h3>Report object assembly (<code>pkg/report/builder.go</code>)</h3>
+  <p>Before writing files, the Builder aggregates findings into a <code>*models.Report</code> with: priority counts, risk score statistics (mean, median, min, max, stddev), top categories/projects by finding count, per-category and per-project breakdowns, and a compliance summary.</p>
+
+  <h3>Output formats</h3>
+  <div class="tbl-outer">
+    <table>
+      <thead><tr><th>Format</th><th>Extension</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><strong>markdown</strong></td><td>.md</td><td>Executive summary, priority breakdown, methodology, top findings, compliance, detailed finding sections</td></tr>
+        <tr><td><strong>html</strong></td><td>.html</td><td>Single-file interactive report — sidebar nav, stat cards, collapsible remediation, print CSS</td></tr>
+        <tr><td><strong>json</strong></td><td>.json</td><td>Complete Report struct serialized as pretty-printed JSON</td></tr>
+        <tr><td><strong>csv</strong></td><td>.csv</td><td>One finding per row with all scored and annotated fields</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Output file naming</h3>
+  <div class="tbl-outer">
+    <table>
+      <thead><tr><th>Command</th><th>Output files</th></tr></thead>
+      <tbody>
+        <tr><td><code>analyze findings.csv</code></td><td><code>findings-report.md</code> + <code>findings-report.html</code></td></tr>
+        <tr><td><code>analyze findings.csv -o report.md</code></td><td><code>report.md</code> + <code>report.html</code></td></tr>
+        <tr><td><code>analyze findings.csv -d ./out</code></td><td><code>./out/findings-report.md</code> + <code>./out/findings-report.html</code></td></tr>
+        <tr><td><code>analyze findings.csv --format html</code></td><td><code>findings-report.html</code> only</td></tr>
+        <tr><td><code>analyze findings.csv --formats markdown,html,json</code></td><td>All three files</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- DATA MODELS -->
+  <h2 class="sec-head" id="models">Core Data Models</h2>
+
+  <div class="card">
+    <div class="card-head"><h2>models.Finding — flows through every pipeline stage</h2></div>
+    <div class="card-body">
+      <pre>Finding
+├── Identification:  Name, FindingClass, FindingType, Category, State, Severity
+├── Resource:        ResourceName, ResourceDisplayName, ResourceType
+├── Project:         ProjectID, ProjectDisplayName
+├── Timestamps:      EventTime, CreateTime
+├── Description:     Description, NextSteps, ExternalURI
+├── Vulnerability:   CVEID, CVSSScore, ObservedInWild, ZeroDay, ExploitActivity
+├── Exposure:        PublicIPAddress
+├── Compliance:      ComplianceFrameworks[], ComplianceDetails[], Violations[]
+└── Computed:
+    ├── RiskScore
+    │   ├── Total (0-100)
+    │   ├── BaseSeverity, CVSS, Exploitability, ClassModifier, Exposure, Compliance
+    │   └── Rationale  (text; overwritten by AI if --ai-enhance)
+    ├── Priority  (CRITICAL / HIGH / MEDIUM / LOW)
+    └── Remediation
+        ├── Summary, EstimatedEffort, AutomationPotential, PriorityRationale
+        ├── NextSteps[], ResourceLinks[]
+        ├── RemediationScript  (overwritten by AI if --ai-enhance)
+        └── RemediationScriptLang  ("bash" or "python3")</pre>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h2>models.Report — the final aggregated structure</h2></div>
+    <div class="card-body">
+      <pre>Report
+├── GeneratedAt, InputFile, TotalRows, ParseErrors
+├── Findings  []*Finding
+├── Stats ReportStats
+│   ├── Total, Critical, High, Medium, Low
+│   ├── RiskStats  (Mean, Median, Min, Max, StdDev)
+│   ├── TopCategories  []CategoryCount
+│   └── TopProjects    []ProjectCount
+├── CategoryBreakdown  map[category → CategoryStats]
+│   └── Critical, High, Medium, Low counts + AvgRiskScore
+├── ProjectBreakdown   map[project → ProjectStats]
+│   └── same as CategoryStats
+└── ComplianceSummary  map[framework → []*ComplianceViolation]
+    └── Framework, Control, Description, Count, Findings[]</pre>
+    </div>
+  </div>
+
+  <!-- EXAMPLES -->
+  <h2 class="sec-head" id="examples">End-to-End Examples</h2>
+
+  <div class="card">
+    <div class="card-head"><h2>Example 1 — Basic CSV analysis (default output)</h2></div>
+    <div class="card-body">
+      <pre>gcp-security-analyzer analyze findings.csv</pre>
+      <ol>
+        <li><code>root.go</code> dispatches to <code>runAnalyze</code></li>
+        <li><code>ExtractPositional</code> identifies <code>findings.csv</code> as the positional argument</li>
+        <li><code>parser.ParseFile</code> opens the file, reads header, maps columns, parses rows → <code>[]*Finding</code></li>
+        <li><code>runPipeline</code> executes:
+          <ul>
+            <li><code>scoring.Engine.ScoreAll()</code> — assigns RiskScore + Priority (8 goroutines)</li>
+            <li><code>compliance.Detector.DetectViolations()</code> — parses JSON compliance fields</li>
+            <li>No remediation, no AI, no filters</li>
+            <li><code>report.Builder.Build()</code> — aggregates into <code>*Report</code></li>
+            <li>Writes <code>findings-report.md</code> and <code>findings-report.html</code></li>
+          </ul>
+        </li>
+      </ol>
+      <p><strong>Output:</strong> <code>findings-report.md</code>, <code>findings-report.html</code></p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h2>Example 2 — Full pipeline with AI enrichment</h2></div>
+    <div class="card-body">
+      <pre>gcp-security-analyzer analyze findings.csv \
+  --include-remediation \
+  --include-compliance \
+  --ai-enhance \
+  -o security-report.md</pre>
+      <ol>
+        <li>Parse <code>findings.csv</code> → <code>[]*Finding</code></li>
+        <li>Score all findings → risk scores + priorities</li>
+        <li>Detect compliance violations → annotate findings</li>
+        <li>Generate remediation guidance for every finding</li>
+        <li>Generate automation scripts for CRITICAL findings</li>
+        <li>Call Claude API (up to 4 concurrent) for each CRITICAL finding → overwrite rationale + script</li>
+        <li>No filters applied</li>
+        <li>Build <code>*Report</code> with compliance summary</li>
+        <li>Write <code>security-report.md</code> + <code>security-report.html</code></li>
+        <li>Write <code>remediation-scripts/*.sh</code> and <code>*.py</code></li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h2>Example 3 — Live fetch with priority filter</h2></div>
+    <div class="card-body">
+      <pre>gcloud auth application-default login
+
+gcp-security-analyzer fetch \
+  --org-id 123456789012 \
+  --days 14 \
+  --priority critical,high \
+  --include-remediation \
+  -o scc-weekly.md</pre>
+      <ol>
+        <li>Connect to GCP SCC API using Application Default Credentials</li>
+        <li>List ACTIVE findings from the last 14 days (paginated, 1,000 per page)</li>
+        <li>Convert protobuf findings → <code>[]*Finding</code></li>
+        <li>Score, detect compliance, generate remediation + scripts</li>
+        <li>Apply filter: keep only CRITICAL and HIGH priority</li>
+        <li>Build report and write <code>scc-weekly.md</code> + <code>scc-weekly.html</code></li>
+        <li>Write remediation scripts for CRITICAL findings</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- DESIGN DECISIONS -->
+  <h2 class="sec-head" id="design">Key Design Decisions</h2>
+
+  <div class="card">
+    <div class="card-body">
+      <h3>Modular, toggleable pipeline</h3>
+      <p>Each stage (scoring, compliance, remediation, AI, filtering, reporting) is independently activated via flags. The shared <code>runPipeline()</code> function orchestrates them so that both <code>analyze</code> and <code>fetch</code> commands benefit from the same logic with zero duplication.</p>
+
+      <h3>Severity floor preserves GCP's judgment</h3>
+      <p>The computed multi-factor score is never allowed to downgrade a finding below the band corresponding to GCP's authoritative severity label. This prevents the scoring engine from contradicting GCP's expert assessment while still differentiating within each severity band.</p>
+
+      <h3>Default output: two formats</h3>
+      <p>With no format flags, the tool always generates both Markdown and HTML. This avoids the common frustration of getting only one format and having to re-run. The format default is an empty string, so any explicit <code>--format</code> value is treated as an override.</p>
+
+      <h3>Graceful degradation</h3>
+      <ul>
+        <li>Missing CVSS / CVE / compliance data → scoring continues with those components at 0</li>
+        <li>AI API failures → original template-based remediation preserved; processing continues</li>
+        <li>CSV parse errors → logged as warnings; valid rows still processed</li>
+      </ul>
+
+      <h3>Concurrency</h3>
+      <ul>
+        <li>Scoring: 8 worker goroutines for high-throughput parallel scoring</li>
+        <li>AI enrichment: 4 concurrent Claude API calls to minimize latency</li>
+      </ul>
+
+      <h3>Single-file, self-contained HTML</h3>
+      <p>The HTML report embeds all CSS and JavaScript inline so it can be opened in any browser without a server or additional assets. Print CSS is included so the report prints cleanly.</p>
+
+      <h3>Column aliasing in CSV parser</h3>
+      <p>GCP's CSV export format uses full API dotted paths (<code>finding.category</code>, <code>resource.project_id</code>). The parser's alias map handles both this format and simplified column names, making the tool work with both Console exports and <code>gcloud</code> CLI exports without user configuration.</p>
+
+      <h3>Category-driven remediation</h3>
+      <p>Remediation scripts, effort estimates, automation hints, and documentation links are all driven by the finding category rather than generic templates. This gives security teams targeted, actionable guidance for each specific vulnerability type.</p>
+    </div>
+  </div>
+
+</main>
+</div>
+</body>
+</html>

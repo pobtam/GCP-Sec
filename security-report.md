@@ -1,35 +1,35 @@
 # GCP Security Findings Analysis Report
 
-Generated: 2026-02-22 05:05:44 UTC
-Input File: GCP SCC org:320438219353 (last 4 days)
+Generated: 2026-02-22 05:50:28 UTC
+Input File: GCP SCC org:320438219353 (last 7 days)
 
 ---
 
 ## Executive Summary
 
-- **Total Active Findings**: 713
-- **Critical Priority**: 199 (27.9%)
-- **High Priority**: 364 (51.1%)
-- **Medium Priority**: 0 (0.0%)
-- **Low Priority**: 150 (21.0%)
+- **Total Active Findings**: 955
+- **Critical Priority**: 228 (23.9%)
+- **High Priority**: 498 (52.1%)
+- **Medium Priority**: 9 (0.9%)
+- **Low Priority**: 220 (23.0%)
 
 **Risk Score Statistics:**
-- Mean: 62.87
+- Mean: 61.52
 - Median: 73.8
 - Range: 16 - 98.88
-- Std Dev: 23.75
+- Std Dev: 24.18
 
 **Top Risk Categories:**
-1. SOFTWARE_VULNERABILITY (338 findings)
-2. OS_VULNERABILITY (95 findings)
-3. PRIVATE_GOOGLE_ACCESS_DISABLED (42 findings)
+1. SOFTWARE_VULNERABILITY (357 findings)
+2. CONTAINER_IMAGE_VULNERABILITY (143 findings)
+3. OS_VULNERABILITY (97 findings)
 4. FLOW_LOGS_DISABLED (42 findings)
-5. POD THAT EXPOSES MANY VALUED RESOURCES (25 findings)
-6. VERTEX_AI_JUPYTERLAB_FILE_DOWNLOADING_ENABLED (18 findings)
-7. USER-MANAGED KEYS TO SERVICE ACCOUNT WITH PERMISSIONS TO PERFORM DATA OPERATIONS ON BUCKET OBJECTS. (13 findings)
-8. FIREWALL THAT EXPOSES MANY VALUED RESOURCES (12 findings)
-9. PERSISTENCE: NEW API METHOD (9 findings)
-10. SERVICE ACCOUNT THAT EXPOSES MANY VALUED RESOURCES (8 findings)
+5. PRIVATE_GOOGLE_ACCESS_DISABLED (42 findings)
+6. VERTEX_AI_ENDPOINT_CMEK_DISABLED (41 findings)
+7. POD THAT EXPOSES MANY VALUED RESOURCES (25 findings)
+8. VERTEX_AI_JUPYTERLAB_FILE_DOWNLOADING_ENABLED (18 findings)
+9. USER-MANAGED KEYS TO SERVICE ACCOUNT WITH PERMISSIONS TO PERFORM DATA OPERATIONS ON BUCKET OBJECTS. (13 findings)
+10. FIREWALL THAT EXPOSES MANY VALUED RESOURCES (12 findings)
 
 
 ---
@@ -38,10 +38,10 @@ Input File: GCP SCC org:320438219353 (last 4 days)
 
 | Priority | Count | Percentage | Avg Risk Score | Remediation SLA |
 |----------|------:|----------:|---------------:|-----------------|
-| CRITICAL | 199 | 27.9% | 81.8 | 24-48 hours |
-| HIGH | 364 | 51.1% | 70.2 | 1 week |
-| MEDIUM | 0 | 0.0% | N/A | 30 days |
-| LOW | 150 | 21.0% | 19.9 | 90 days |
+| CRITICAL | 228 | 23.9% | 82.3 | 24-48 hours |
+| HIGH | 498 | 52.1% | 70.6 | 1 week |
+| MEDIUM | 9 | 0.9% | 36.0 | 30 days |
+| LOW | 220 | 23.0% | 20.4 | 90 days |
 
 ---
 
@@ -65,7 +65,7 @@ Findings are scored on a 0-100 scale using the following components:
 
 ## Top Findings by Priority
 
-### CRITICAL Priority (199 findings)
+### CRITICAL Priority (228 findings)
 
 | # | Category | Resource | Risk Score | CVE | Project |
 |--:|----------|----------|----------:|-----|---------|
@@ -90,7 +90,7 @@ Findings are scored on a 0-100 scale using the following components:
 | 19 | POD THAT EXPOSES MANY VALUED RESOURCES | kube-dns-autoscaler-7fbb9fbfb-2rg6k | 75.00 | - | wanaware-core-prod |
 | 20 | FIREWALL THAT EXPOSES MANY VALUED RESOURCES | default-allow-ssh | 75.00 | - | wa-gcp-test |
 
-### HIGH Priority (364 findings)
+### HIGH Priority (498 findings)
 
 | # | Category | Resource | Risk Score | CVE | Project |
 |--:|----------|----------|----------:|-----|---------|
@@ -115,30 +115,44 @@ Findings are scored on a 0-100 scale using the following components:
 | 19 | GKE_SECURITY_BULLETIN | internet-mapper | 55.00 | - | wanaware-mapper-dev |
 | 20 | GKE_SECURITY_BULLETIN | internet-mapper | 55.00 | - | wanaware-mapper-dev |
 
-### LOW Priority (150 findings)
+### MEDIUM Priority (9 findings)
 
 | # | Category | Resource | Risk Score | CVE | Project |
 |--:|----------|----------|----------:|-----|---------|
-| 1 | VERTEX_AI_METADATA_STORE_CMEK_DISABLED | projects/358972189709/locations/us-ce... | 20.00 | - | wanaware-stage |
-| 2 | VERTEX_AI_MODEL_CMEK_DISABLED | projects/45062729948/locations/us-cen... | 20.00 | - | wanaware-dev |
-| 3 | VERTEX_AI_METADATA_STORE_CMEK_DISABLED | projects/62518548529/locations/us-cen... | 20.00 | - | wanaware-security-map-dev |
-| 4 | VERTEX_AI_METADATA_STORE_CMEK_DISABLED | projects/45062729948/locations/us-cen... | 20.00 | - | wanaware-dev |
-| 5 | VERTEX_AI_MODEL_CMEK_DISABLED | projects/358972189709/locations/us-ce... | 20.00 | - | wanaware-stage |
-| 6 | VERTEX_AI_TENSORBOARD_CMEK_DISABLED | Default TensorBoard 2026-01-08 00:28:... | 20.00 | - | wanaware-dev |
-| 7 | VERTEX_AI_DATASET_CMEK_DISABLED | projects/62518548529/locations/us-cen... | 20.00 | - | wanaware-security-map-dev |
-| 8 | VERTEX_AI_MODEL_CMEK_DISABLED | projects/62518548529/locations/us-cen... | 20.00 | - | wanaware-security-map-dev |
-| 9 | VERTEX_AI_TRAINING_PIPELINE_CMEK_DISABLED | projects/62518548529/locations/us-cen... | 20.00 | - | wanaware-security-map-dev |
-| 10 | VERTEX_AI_MODEL_CMEK_DISABLED | projects/45062729948/locations/us-cen... | 20.00 | - | wanaware-dev |
-| 11 | VERTEX_AI_TENSORBOARD_CMEK_DISABLED | Default TensorBoard 2026-02-17 22:52:... | 20.00 | - | wanaware-stage |
-| 12 | VERTEX_AI_DATASET_CMEK_DISABLED | projects/62518548529/locations/us-cen... | 20.00 | - | wanaware-security-map-dev |
-| 13 | VERTEX_AI_MODEL_CMEK_DISABLED | projects/45062729948/locations/us-cen... | 20.00 | - | wanaware-dev |
-| 14 | GKE_PRIVILEGE_ESCALATION | wanaware-deployment-cluster | 30.00 | - | wanaware-core-dev |
-| 15 | GKE_PRIVILEGE_ESCALATION | internet-mapper | 30.00 | - | wanaware-mapper-dev |
-| 16 | GKE_RUN_AS_NONROOT | internet-mapper | 20.00 | - | wanaware-mapper-dev |
-| 17 | GKE_RUN_AS_NONROOT | wanaware-deployment-cluster | 20.00 | - | wanaware-core-dev |
-| 18 | INITIAL ACCESS: GKE NODEPORT SERVICE CREATED | wanaware-deployment-cluster | 24.00 | - | wanaware-core-dev |
-| 19 | PERSISTENCE: SERVICE ACCOUNT CREATED IN SENSITIVE NAMESPACE | internet-mapper | 16.00 | - | wanaware-mapper-dev |
-| 20 | PERSISTENCE: NEW API METHOD | internet-mapper | 16.00 | - | wanaware-mapper-dev |
+| 1 | WEAK_SSL_POLICY | k8s2-ts-0jk8byvv-worker-service-worke... | 36.00 | - | wanaware-core-stage |
+| 2 | WEAK_SSL_POLICY | wanaware-docs-https-proxy | 36.00 | - | wanaware-core-stage |
+| 3 | WEAK_SSL_POLICY | k8s2-ts-0jk8byvv-function-integr-func... | 36.00 | - | wanaware-core-stage |
+| 4 | WEAK_SSL_POLICY | k8s2-ts-0jk8byvv-tunnel-chisel-ingres... | 36.00 | - | wanaware-core-stage |
+| 5 | WEAK_SSL_POLICY | k8s2-ts-0jk8byvv-user-authentication-... | 36.00 | - | wanaware-core-stage |
+| 6 | WEAK_SSL_POLICY | k8s2-ts-0jk8byvv-fleet-manager-fleet-... | 36.00 | - | wanaware-core-stage |
+| 7 | WEAK_SSL_POLICY | k8s2-ts-0jk8byvv-notification-ma-noti... | 36.00 | - | wanaware-core-stage |
+| 8 | WEAK_SSL_POLICY | k8s2-ts-0jk8byvv-aws-integrator-aws-i... | 36.00 | - | wanaware-core-stage |
+| 9 | WEAK_SSL_POLICY | k8s2-ts-0jk8byvv-subscription-ma-subs... | 36.00 | - | wanaware-core-stage |
+
+### LOW Priority (220 findings)
+
+| # | Category | Resource | Risk Score | CVE | Project |
+|--:|----------|----------|----------:|-----|---------|
+| 1 | VERTEX_AI_ENDPOINT_CMEK_DISABLED |  | 20.00 | - |  |
+| 2 | VERTEX_AI_ENDPOINT_CMEK_DISABLED |  | 20.00 | - |  |
+| 3 | VERTEX_AI_ENDPOINT_CMEK_DISABLED |  | 20.00 | - |  |
+| 4 | VERTEX_AI_ENDPOINT_CMEK_DISABLED |  | 20.00 | - |  |
+| 5 | VERTEX_AI_ENDPOINT_CMEK_DISABLED |  | 20.00 | - |  |
+| 6 | VERTEX_AI_ENDPOINT_CMEK_DISABLED |  | 20.00 | - |  |
+| 7 | VERTEX_AI_METADATA_STORE_CMEK_DISABLED | projects/358972189709/locations/us-ce... | 20.00 | - | wanaware-stage |
+| 8 | VERTEX_AI_MODEL_CMEK_DISABLED | projects/45062729948/locations/us-cen... | 20.00 | - | wanaware-dev |
+| 9 | VERTEX_AI_METADATA_STORE_CMEK_DISABLED | projects/62518548529/locations/us-cen... | 20.00 | - | wanaware-security-map-dev |
+| 10 | VERTEX_AI_ENDPOINT_CMEK_DISABLED |  | 20.00 | - |  |
+| 11 | VERTEX_AI_ENDPOINT_CMEK_DISABLED |  | 20.00 | - |  |
+| 12 | VERTEX_AI_ENDPOINT_CMEK_DISABLED |  | 20.00 | - |  |
+| 13 | VERTEX_AI_ENDPOINT_CMEK_DISABLED |  | 20.00 | - |  |
+| 14 | VERTEX_AI_ENDPOINT_CMEK_DISABLED |  | 20.00 | - |  |
+| 15 | VERTEX_AI_METADATA_STORE_CMEK_DISABLED | projects/45062729948/locations/us-cen... | 20.00 | - | wanaware-dev |
+| 16 | VERTEX_AI_ENDPOINT_CMEK_DISABLED |  | 20.00 | - |  |
+| 17 | VERTEX_AI_ENDPOINT_CMEK_DISABLED |  | 20.00 | - |  |
+| 18 | VERTEX_AI_MODEL_CMEK_DISABLED | projects/358972189709/locations/us-ce... | 20.00 | - | wanaware-stage |
+| 19 | VERTEX_AI_ENDPOINT_CMEK_DISABLED |  | 20.00 | - |  |
+| 20 | VERTEX_AI_ENDPOINT_CMEK_DISABLED |  | 20.00 | - |  |
 
 
 ---
@@ -157,11 +171,11 @@ Findings are scored on a 0-100 scale using the following components:
 
 ### CIS
 
-- **Total Violations**: 23
+- **Total Violations**: 24
 - **Top Violations**:
 - CIS 3.8: 84 finding(s)
-- CIS 3.9: 42 finding(s)
-- CIS 5.3: 2 finding(s)
+- CIS 3.9: 51 finding(s)
+- CIS 5.3: 3 finding(s)
 - CIS 1.4: 2 finding(s)
 - CIS 5.2: 2 finding(s)
 
@@ -172,28 +186,28 @@ Findings are scored on a 0-100 scale using the following components:
 - CIS-CONTROLS 8.2: 10 finding(s)
 - CIS-CONTROLS 8.5: 6 finding(s)
 - CIS-CONTROLS 3.3: 3 finding(s)
-- CIS-CONTROLS 4.4: 2 finding(s)
 - CIS-CONTROLS 8.11: 2 finding(s)
+- CIS-CONTROLS 4.4: 2 finding(s)
 
 ### HIPAA
 
 - **Total Violations**: 5
 - **Top Violations**:
 - HIPAA 164.312(b): 10 finding(s)
-- HIPAA 164.312(a)(1): 3 finding(s)
 - HIPAA 164.308(a)(3)(i): 3 finding(s)
 - HIPAA 164.308(a)(3)(ii): 3 finding(s)
+- HIPAA 164.312(a)(1): 3 finding(s)
 - HIPAA 164.308(a)(1)(ii): 2 finding(s)
 
 ### ISO
 
-- **Total Violations**: 5
+- **Total Violations**: 6
 - **Top Violations**:
 - ISO A.13.1.1: 48 finding(s)
-- ISO A.9.2.3: 6 finding(s)
-- ISO A.12.4.1: 1 finding(s)
-- ISO A.16.1.7: 1 finding(s)
+- ISO A.14.1.3: 9 finding(s)
+- ISO A.9.2.3: 8 finding(s)
 - ISO A.18.1.3: 1 finding(s)
+- ISO A.12.4.1: 1 finding(s)
 
 ### ISO27001
 
@@ -202,18 +216,18 @@ Findings are scored on a 0-100 scale using the following components:
 - ISO27001 A.8.15: 8 finding(s)
 - ISO27001 A.8.20: 8 finding(s)
 - ISO27001 A.5.15: 5 finding(s)
+- ISO27001 A.8.4: 3 finding(s)
 - ISO27001 A.5.10: 3 finding(s)
-- ISO27001 A.8.3: 3 finding(s)
 
 ### NIST
 
 - **Total Violations**: 11
 - **Top Violations**:
 - NIST SI-4: 46 finding(s)
+- NIST SC-7: 11 finding(s)
 - NIST PR-PT-1: 10 finding(s)
+- NIST AC-6: 8 finding(s)
 - NIST DE-AE-3: 8 finding(s)
-- NIST AC-6: 6 finding(s)
-- NIST PR-AC-4: 4 finding(s)
 
 ### NIST800-53
 
@@ -223,17 +237,17 @@ Findings are scored on a 0-100 scale using the following components:
 - NIST800-53 AU-2: 8 finding(s)
 - NIST800-53 AU-12: 8 finding(s)
 - NIST800-53 AC-6: 4 finding(s)
-- NIST800-53 AC-5: 3 finding(s)
+- NIST800-53 MP-2: 3 finding(s)
 
 ### PCI-DSS
 
-- **Total Violations**: 30
+- **Total Violations**: 32
 - **Top Violations**:
 - PCI-DSS 10.1: 47 finding(s)
 - PCI-DSS 10.2: 47 finding(s)
+- PCI-DSS 4.1: 9 finding(s)
 - PCI-DSS 10.2.1.6: 8 finding(s)
-- PCI-DSS 6.4.1: 8 finding(s)
-- PCI-DSS 10.2.1.2: 8 finding(s)
+- PCI-DSS 10.2.1.3: 8 finding(s)
 
 ### SOC2
 
@@ -242,8 +256,8 @@ Findings are scored on a 0-100 scale using the following components:
 - SOC2 CC6.1.7: 4 finding(s)
 - SOC2 CC6.1.3: 4 finding(s)
 - SOC2 CC5.2.3: 3 finding(s)
-- SOC2 CC4.1.3: 2 finding(s)
-- SOC2 CC7.3.4: 2 finding(s)
+- SOC2 CC4.1.8: 2 finding(s)
+- SOC2 CC7.3.3: 2 finding(s)
 
 
 ---
@@ -252,65 +266,69 @@ Findings are scored on a 0-100 scale using the following components:
 
 | Category | Total | Critical | High | Medium | Low | Avg Score |
 |----------|------:|---------:|-----:|-------:|----:|----------:|
-| SOFTWARE_VULNERABILITY | 338 | 87 | 251 | 0 | 0 | 76.6 |
-| OS_VULNERABILITY | 95 | 48 | 47 | 0 | 0 | 78.8 |
+| SOFTWARE_VULNERABILITY | 357 | 87 | 270 | 0 | 0 | 76.3 |
+| CONTAINER_IMAGE_VULNERABILITY | 143 | 31 | 112 | 0 | 0 | 75.0 |
+| OS_VULNERABILITY | 97 | 48 | 49 | 0 | 0 | 78.7 |
 | FLOW_LOGS_DISABLED | 42 | 0 | 0 | 0 | 42 | 22.0 |
 | PRIVATE_GOOGLE_ACCESS_DISABLED | 42 | 0 | 0 | 0 | 42 | 16.0 |
+| VERTEX_AI_ENDPOINT_CMEK_DISABLED | 41 | 0 | 0 | 0 | 41 | 20.0 |
 | POD THAT EXPOSES MANY VALUED RESOURCES | 25 | 25 | 0 | 0 | 0 | 75.0 |
 | VERTEX_AI_JUPYTERLAB_FILE_DOWNLOADING_ENABLED | 18 | 0 | 18 | 0 | 0 | 55.0 |
 | USER-MANAGED KEYS TO SERVICE ACCOUNT WITH PERMISSIONS TO PERFORM DATA OPERATIONS ON BUCKET OBJECTS. | 13 | 1 | 12 | 0 | 0 | 56.5 |
 | FIREWALL THAT EXPOSES MANY VALUED RESOURCES | 12 | 12 | 0 | 0 | 0 | 75.0 |
+| INITIAL ACCESS: GKE NODEPORT SERVICE CREATED | 11 | 0 | 0 | 0 | 11 | 24.0 |
 | PERSISTENCE: NEW API METHOD | 9 | 0 | 0 | 0 | 9 | 16.0 |
+| PERSISTENCE: IAM ANOMALOUS GRANT | 9 | 0 | 9 | 0 | 0 | 55.0 |
+| WEAK_SSL_POLICY | 9 | 0 | 0 | 9 | 0 | 36.0 |
+| HTTP_LOAD_BALANCER | 8 | 0 | 0 | 0 | 8 | 26.4 |
 | SERVICE ACCOUNT THAT EXPOSES MANY VALUED RESOURCES | 8 | 8 | 0 | 0 | 0 | 75.0 |
-| CONTAINER_IMAGE_VULNERABILITY | 6 | 2 | 4 | 0 | 0 | 69.0 |
+| PRIMITIVE_ROLES_USED | 7 | 0 | 0 | 0 | 7 | 24.0 |
 | PUBLICLY ACCESSIBLE INSTANCE WITH PROJECT-WIDE SSH KEY. | 6 | 2 | 4 | 0 | 0 | 61.7 |
+| SERVICE ACCOUNT KEY THAT EXPOSES MANY VALUED RESOURCES | 5 | 5 | 0 | 0 | 0 | 75.0 |
 | INSTANCE THAT EXPOSES MANY VALUED RESOURCES | 5 | 5 | 0 | 0 | 0 | 75.0 |
 | USER-MANAGED KEYS TO SERVICE ACCOUNT WITH PERMISSIONS TO ASSUME OTHER SERVICE ACCOUNTS. | 5 | 1 | 4 | 0 | 0 | 59.0 |
-| SERVICE ACCOUNT KEY THAT EXPOSES MANY VALUED RESOURCES | 5 | 5 | 0 | 0 | 0 | 75.0 |
-| PRIMITIVE_ROLES_USED | 5 | 0 | 0 | 0 | 5 | 24.0 |
 | VERTEX_AI_MODEL_CMEK_DISABLED | 5 | 0 | 0 | 0 | 5 | 20.0 |
-| PERSISTENCE: IAM ANOMALOUS GRANT | 4 | 0 | 4 | 0 | 0 | 55.0 |
 | PERSISTENCE: SERVICE ACCOUNT CREATED IN SENSITIVE NAMESPACE | 4 | 0 | 0 | 0 | 4 | 16.0 |
 | FIREWALL_RULE_LOGGING_DISABLED | 4 | 0 | 0 | 0 | 4 | 32.0 |
-| USER-MANAGED KEYS TO SERVICE ACCOUNT WITH PERMISSIONS TO PERFORM DATA OPERATIONS ON BIGQUERY DATASETS. | 4 | 0 | 4 | 0 | 0 | 55.0 |
 | USER-MANAGED KEYS TO SERVICE ACCOUNT WITH PERMISSIONS TO PATCH KUBERNETES NODES. | 4 | 0 | 4 | 0 | 0 | 55.0 |
-| USER-MANAGED KEYS TO SERVICE ACCOUNT WITH PERMISSIONS TO ASSUME OTHER SERVICE ACCOUNTS LEADING TO MANAGEMENT OPERATIONS ON VERTEX AI MODEL. | 3 | 0 | 3 | 0 | 0 | 55.0 |
-| USER-MANAGED KEYS TO SERVICE ACCOUNT WITH PERMISSIONS TO MODIFY THE METADATA INFORMATION OF AN INSTANCE. | 3 | 1 | 2 | 0 | 0 | 61.7 |
+| PERSISTENCE: SERVICE ACCOUNT KEY CREATED | 4 | 0 | 0 | 0 | 4 | 16.0 |
+| USER-MANAGED KEYS TO SERVICE ACCOUNT WITH PERMISSIONS TO PERFORM DATA OPERATIONS ON BIGQUERY DATASETS. | 4 | 0 | 4 | 0 | 0 | 55.0 |
+| GKE_PRIVILEGE_ESCALATION | 3 | 0 | 0 | 0 | 3 | 30.0 |
 | VERTEX_AI_METADATA_STORE_CMEK_DISABLED | 3 | 0 | 0 | 0 | 3 | 20.0 |
+| USER-MANAGED KEYS TO SERVICE ACCOUNT WITH PERMISSIONS TO ASSUME OTHER SERVICE ACCOUNTS LEADING TO MANAGEMENT OPERATIONS ON VERTEX AI MODEL. | 3 | 0 | 3 | 0 | 0 | 55.0 |
+| BUCKET_LOGGING_DISABLED | 3 | 0 | 0 | 0 | 3 | 24.0 |
+| GKE_RUN_AS_NONROOT | 3 | 0 | 0 | 0 | 3 | 20.0 |
+| USER-MANAGED KEYS TO SERVICE ACCOUNT WITH PERMISSIONS TO MODIFY THE METADATA INFORMATION OF AN INSTANCE. | 3 | 1 | 2 | 0 | 0 | 61.7 |
+| PERSISTENCE: NEW USER AGENT | 3 | 0 | 0 | 0 | 3 | 16.0 |
+| VERTEX_AI_TENSORBOARD_CMEK_DISABLED | 2 | 0 | 0 | 0 | 2 | 20.0 |
+| PERSISTENCE: NEW GEOGRAPHY | 2 | 0 | 0 | 0 | 2 | 16.0 |
 | PERSISTENCE: UNMANAGED ACCOUNT GRANTED SENSITIVE ROLE | 2 | 0 | 2 | 0 | 0 | 55.0 |
+| INITIAL ACCESS: EXCESSIVE PERMISSION DENIED ACTIONS | 2 | 0 | 0 | 0 | 2 | 24.0 |
+| BUCKET_POLICY_ONLY_DISABLED | 2 | 0 | 0 | 0 | 2 | 25.6 |
 | VERTEX_AI_DATASET_CMEK_DISABLED | 2 | 0 | 0 | 0 | 2 | 20.0 |
 | GKE_SECURITY_BULLETIN | 2 | 0 | 2 | 0 | 0 | 55.0 |
-| VERTEX_AI_TENSORBOARD_CMEK_DISABLED | 2 | 0 | 0 | 0 | 2 | 20.0 |
-| GKE_RUN_AS_NONROOT | 2 | 0 | 0 | 0 | 2 | 20.0 |
-| INITIAL ACCESS: EXCESSIVE PERMISSION DENIED ACTIONS | 2 | 0 | 0 | 0 | 2 | 24.0 |
 | PUBLICLY ACCESSIBLE INSTANCE WITH PROJECT-WIDE SSH KEY AND THE ABILITY TO ASSUME SERVICE ACCOUNTS. | 2 | 2 | 0 | 0 | 0 | 75.0 |
-| GKE_PRIVILEGE_ESCALATION | 2 | 0 | 0 | 0 | 2 | 30.0 |
-| BUCKET_LOGGING_DISABLED | 2 | 0 | 0 | 0 | 2 | 24.0 |
-| BUCKET_POLICY_ONLY_DISABLED | 2 | 0 | 0 | 0 | 2 | 25.6 |
-| PERSISTENCE: NEW USER AGENT | 2 | 0 | 0 | 0 | 2 | 16.0 |
-| OVER_PRIVILEGED_SERVICE_ACCOUNT_USER | 1 | 0 | 0 | 0 | 1 | 24.0 |
-| CUSTOM_ROLE_NOT_MONITORED | 1 | 0 | 0 | 0 | 1 | 16.0 |
-| AUDIT_LOGGING_DISABLED | 1 | 0 | 0 | 0 | 1 | 22.0 |
-| FIREWALL_NOT_MONITORED | 1 | 0 | 0 | 0 | 1 | 20.0 |
-| NETWORK_NOT_MONITORED | 1 | 0 | 0 | 0 | 1 | 20.0 |
-| DEFAULT_NETWORK | 1 | 0 | 0 | 0 | 1 | 30.0 |
-| DNS_LOGGING_DISABLED | 1 | 0 | 0 | 0 | 1 | 25.6 |
-| ADMIN_SERVICE_ACCOUNT | 1 | 0 | 0 | 0 | 1 | 24.0 |
-| OPEN_RDP_PORT | 1 | 0 | 1 | 0 | 0 | 55.0 |
-| EGRESS_DENY_RULE_NOT_SET | 1 | 0 | 0 | 0 | 1 | 16.0 |
-| ROUTE_NOT_MONITORED | 1 | 0 | 0 | 0 | 1 | 16.0 |
-| USER_MANAGED_SERVICE_ACCOUNT_KEY | 1 | 0 | 0 | 0 | 1 | 30.0 |
-| OPEN_SSH_PORT | 1 | 0 | 1 | 0 | 0 | 55.0 |
-| OS_LOGIN_DISABLED | 1 | 0 | 0 | 0 | 1 | 25.6 |
-| INITIAL ACCESS: GKE NODEPORT SERVICE CREATED | 1 | 0 | 0 | 0 | 1 | 24.0 |
-| PERSISTENCE: NEW GEOGRAPHY | 1 | 0 | 0 | 0 | 1 | 16.0 |
 | VERTEX_AI_TRAINING_PIPELINE_CMEK_DISABLED | 1 | 0 | 0 | 0 | 1 | 20.0 |
 | OWNER_NOT_MONITORED | 1 | 0 | 0 | 0 | 1 | 16.0 |
-| LOG_NOT_EXPORTED | 1 | 0 | 0 | 0 | 1 | 17.6 |
-| BUCKET_IAM_NOT_MONITORED | 1 | 0 | 0 | 0 | 1 | 22.0 |
-| USER-MANAGED KEYS TO SERVICE ACCOUNT WITH PERMISSIONS TO PATCH KUBERNETES WORKLOADS. | 1 | 0 | 1 | 0 | 0 | 55.0 |
-| PERSISTENCE: SERVICE ACCOUNT KEY CREATED | 1 | 0 | 0 | 0 | 1 | 16.0 |
+| CUSTOM_ROLE_NOT_MONITORED | 1 | 0 | 0 | 0 | 1 | 16.0 |
+| DNS_LOGGING_DISABLED | 1 | 0 | 0 | 0 | 1 | 25.6 |
 | AUDIT_CONFIG_NOT_MONITORED | 1 | 0 | 0 | 0 | 1 | 17.6 |
+| OVER_PRIVILEGED_SERVICE_ACCOUNT_USER | 1 | 0 | 0 | 0 | 1 | 24.0 |
+| OPEN_RDP_PORT | 1 | 0 | 1 | 0 | 0 | 55.0 |
+| USER-MANAGED KEYS TO SERVICE ACCOUNT WITH PERMISSIONS TO PATCH KUBERNETES WORKLOADS. | 1 | 0 | 1 | 0 | 0 | 55.0 |
+| OPEN_SSH_PORT | 1 | 0 | 1 | 0 | 0 | 55.0 |
+| NETWORK_NOT_MONITORED | 1 | 0 | 0 | 0 | 1 | 20.0 |
+| LOG_NOT_EXPORTED | 1 | 0 | 0 | 0 | 1 | 17.6 |
+| USER_MANAGED_SERVICE_ACCOUNT_KEY | 1 | 0 | 0 | 0 | 1 | 30.0 |
+| BUCKET_IAM_NOT_MONITORED | 1 | 0 | 0 | 0 | 1 | 22.0 |
+| ADMIN_SERVICE_ACCOUNT | 1 | 0 | 0 | 0 | 1 | 24.0 |
+| FIREWALL_NOT_MONITORED | 1 | 0 | 0 | 0 | 1 | 20.0 |
+| ROUTE_NOT_MONITORED | 1 | 0 | 0 | 0 | 1 | 16.0 |
+| DEFAULT_NETWORK | 1 | 0 | 0 | 0 | 1 | 30.0 |
+| OS_LOGIN_DISABLED | 1 | 0 | 0 | 0 | 1 | 25.6 |
+| AUDIT_LOGGING_DISABLED | 1 | 0 | 0 | 0 | 1 | 22.0 |
+| EGRESS_DENY_RULE_NOT_SET | 1 | 0 | 0 | 0 | 1 | 16.0 |
+| SERVICE_ACCOUNT_KEY_NOT_ROTATED | 1 | 0 | 0 | 0 | 1 | 30.0 |
 
 
 ---
@@ -319,17 +337,17 @@ Findings are scored on a 0-100 scale using the following components:
 
 | Project | Total | Critical | High | Medium | Low | Avg Score |
 |---------|------:|---------:|-----:|-------:|----:|----------:|
-| wanaware-dev | 257 | 84 | 168 | 0 | 5 | 75.2 |
-| wanaware-core-prod | 223 | 84 | 138 | 0 | 1 | 76.3 |
+| wanaware-dev | 266 | 84 | 176 | 0 | 6 | 74.9 |
+| wanaware-core-prod | 236 | 84 | 149 | 0 | 3 | 75.6 |
+| wanaware-core-stage | 160 | 29 | 101 | 9 | 21 | 65.9 |
 | wanaware-ai-dev | 102 | 0 | 6 | 0 | 96 | 21.9 |
-| wanaware-security-map-dev | 32 | 13 | 14 | 0 | 5 | 59.0 |
-| wanaware-core-dev | 24 | 11 | 8 | 0 | 5 | 60.2 |
+| wanaware-security-map-dev | 38 | 13 | 20 | 0 | 5 | 60.8 |
+| wanaware-core-dev | 34 | 13 | 16 | 0 | 5 | 64.9 |
 | wanaware-mapper-dev | 17 | 0 | 2 | 0 | 15 | 22.6 |
+| wanaware-stage | 12 | 0 | 4 | 0 | 8 | 33.6 |
 | aerobic-pivot-488020-q5 | 10 | 0 | 0 | 0 | 10 | 19.1 |
-| wanaware-stage | 9 | 0 | 1 | 0 | 8 | 26.5 |
-| wanaware-core-stage | 7 | 2 | 5 | 0 | 0 | 60.7 |
+| wanaware-prod | 8 | 0 | 5 | 0 | 3 | 41.4 |
 | wa-gcp-test | 6 | 5 | 1 | 0 | 0 | 71.7 |
-| wanaware-prod | 4 | 0 | 3 | 0 | 1 | 47.2 |
 
 
 ---
