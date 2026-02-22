@@ -4,7 +4,7 @@
 # Category:  CONTAINER_IMAGE_VULNERABILITY
 # Priority:  CRITICAL (risk score 77.76)
 # Resource:  projects/wanaware-core-stage/locations/us-central1/repositories/function-integrator/dockerImages/function-integrator@sha256:305f27dadce69d61e2136c337320275a17c68fb20f87d872b11637dd68b2c1b8
-# Project:   940510641271
+# Project:   
 # CVE:           CVE-2025-61732 (CVSS 8.6)
 # Generated: 2026-02-22
 # ============================================================

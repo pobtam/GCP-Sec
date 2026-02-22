@@ -4,7 +4,7 @@
 # Category:  CONTAINER_IMAGE_VULNERABILITY
 # Priority:  CRITICAL (risk score 77.76)
 # Resource:  projects/wanaware-core-prod/locations/us-central1/repositories/subscription-manager/dockerImages/subscription-manager@sha256:30ab785343ca3b4fafbb5e67d97aeb5e0c1fb5c248beaaa91c2cb0ac70e740d2
-# Project:   503291607878
+# Project:   
 # CVE:           CVE-2025-61732 (CVSS 8.6)
 # Generated: 2026-02-22
 # ============================================================

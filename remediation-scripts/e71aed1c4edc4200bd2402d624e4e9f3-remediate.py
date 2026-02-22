@@ -4,7 +4,7 @@
 # Category:  CONTAINER_IMAGE_VULNERABILITY
 # Priority:  CRITICAL (risk score 77.76)
 # Resource:  projects/wanaware-core-dev/locations/us-central1/repositories/aws-integrator/dockerImages/aws-integrator@sha256:acafb46faddcbb1068ae569fafed3d79aab5545e730ae3a0dbafc30fce6994d9
-# Project:   866233621206
+# Project:   
 # CVE:           CVE-2025-61732 (CVSS 8.6)
 # Generated: 2026-02-22
 # ============================================================

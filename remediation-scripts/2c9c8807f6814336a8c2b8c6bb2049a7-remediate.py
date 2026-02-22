@@ -4,7 +4,7 @@
 # Category:  CONTAINER_IMAGE_VULNERABILITY
 # Priority:  CRITICAL (risk score 77.76)
 # Resource:  projects/wanaware-security-map-dev/locations/us-central1/repositories/cloud-resource-integrator/dockerImages/cloud-resource-integrator@sha256:4dd790744abba6ce1b58a669e9003662180f3d986270b0628dbe0b1d0050a592
-# Project:   62518548529
+# Project:   
 # CVE:           CVE-2025-61732 (CVSS 8.6)
 # Generated: 2026-02-22
 # ============================================================

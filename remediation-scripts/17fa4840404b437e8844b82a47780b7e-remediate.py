@@ -4,7 +4,7 @@
 # Category:  CONTAINER_IMAGE_VULNERABILITY
 # Priority:  CRITICAL (risk score 76.08)
 # Resource:  projects/wanaware-security-map-dev/locations/us-central1/repositories/azure-integrator/dockerImages/azure-integrator@sha256:605e13c0a9efdc3fe9da77120efd9c63a984663cf25ebd3189082706ce769cb4
-# Project:   62518548529
+# Project:   
 # CVE:           CVE-2025-68121 (CVSS 4.8)
 # Generated: 2026-02-22
 # ============================================================

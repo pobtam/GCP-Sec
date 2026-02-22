@@ -92,7 +92,7 @@ ANALYZE OPTIONS:
   -c, --category <c,...>      Filter by category
       --project <p,...>        Filter by GCP project ID
       --split-by-priority      Write separate files per priority level
-      --include-remediation    Include detailed remediation steps
+      --include-remediation    Include remediation steps and scripts (default: true)
       --include-compliance     Include compliance violation details
       --ai-enhance             AI-enrich CRITICAL findings via Claude API (requires ANTHROPIC_API_KEY)
       --min-risk-score <f>     Minimum risk score filter (default: 0)

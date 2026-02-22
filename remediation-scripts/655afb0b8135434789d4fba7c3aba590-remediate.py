@@ -4,7 +4,7 @@
 # Category:  CONTAINER_IMAGE_VULNERABILITY
 # Priority:  CRITICAL (risk score 87.96)
 # Resource:  projects/wanaware-security-map-dev/locations/us-central1/repositories/security-app/dockerImages/security-app@sha256:0810e0325b8319f74a3643d74dd142ffad277da4f1f664858133904380838ae0
-# Project:   62518548529
+# Project:   
 # CVE:           CVE-2026-23876 (CVSS 8.1)
 # Generated: 2026-02-22
 # ============================================================

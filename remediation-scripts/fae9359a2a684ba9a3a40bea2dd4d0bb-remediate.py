@@ -4,7 +4,7 @@
 # Category:  CONTAINER_IMAGE_VULNERABILITY
 # Priority:  CRITICAL (risk score 77.76)
 # Resource:  projects/wanaware-core-prod/locations/us-central1/repositories/task-scheduler/dockerImages/task-scheduler@sha256:3eeb53645bbdb924efcc1e4450baba5d32527bdb04681547847d4829acf8e5c2
-# Project:   503291607878
+# Project:   
 # CVE:           CVE-2025-61732 (CVSS 8.6)
 # Generated: 2026-02-22
 # ============================================================

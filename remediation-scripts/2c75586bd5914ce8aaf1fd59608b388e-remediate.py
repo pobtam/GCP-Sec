@@ -4,7 +4,7 @@
 # Category:  CONTAINER_IMAGE_VULNERABILITY
 # Priority:  CRITICAL (risk score 77.76)
 # Resource:  projects/wanaware-security-map-dev/locations/us-central1/repositories/gcp-integrator/dockerImages/gcp-integrator@sha256:a355280f43cc0f50ac75d7d403453bc191f128fd761c1643a9db9a1f13c7a1a7
-# Project:   62518548529
+# Project:   
 # CVE:           CVE-2025-61732 (CVSS 8.6)
 # Generated: 2026-02-22
 # ============================================================

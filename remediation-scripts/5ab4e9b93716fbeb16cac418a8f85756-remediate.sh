@@ -4,12 +4,12 @@
 # Category:  POD THAT EXPOSES MANY VALUED RESOURCES
 # Priority:  CRITICAL (risk score 75.00)
 # Resource:  kube-dns-6755448958-pd5t4
-# Project:   503291607878
+# Project:   
 # Generated: 2026-02-22
 # ============================================================
 set -euo pipefail
 
-PROJECT="503291607878"
+PROJECT=""
 RESOURCE="kube-dns-6755448958-pd5t4"
 CATEGORY="POD THAT EXPOSES MANY VALUED RESOURCES"
 DRY_RUN=${DRY_RUN:-false}

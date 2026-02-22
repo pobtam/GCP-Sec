@@ -4,12 +4,12 @@
 # Category:  POD THAT EXPOSES MANY VALUED RESOURCES
 # Priority:  CRITICAL (risk score 75.00)
 # Resource:  konnectivity-agent-autoscaler-d7655748b-sqbts
-# Project:   503291607878
+# Project:   
 # Generated: 2026-02-22
 # ============================================================
 set -euo pipefail
 
-PROJECT="503291607878"
+PROJECT=""
 RESOURCE="konnectivity-agent-autoscaler-d7655748b-sqbts"
 CATEGORY="POD THAT EXPOSES MANY VALUED RESOURCES"
 DRY_RUN=${DRY_RUN:-false}

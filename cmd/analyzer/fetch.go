@@ -41,7 +41,7 @@ func runFetch(args []string) int {
 	fs.StringVar(&ff.Categories, "c", "", "Filter by category (shorthand)")
 	fs.StringVar(&ff.Projects, "project", "", "Filter by project (comma-separated)")
 	fs.BoolVar(&ff.SplitByPriority, "split-by-priority", false, "Split output by priority")
-	fs.BoolVar(&ff.IncludeRemediation, "include-remediation", false, "Include remediation steps")
+	fs.BoolVar(&ff.IncludeRemediation, "include-remediation", true, "Include remediation steps and scripts (default: enabled)")
 	fs.BoolVar(&ff.IncludeCompliance, "include-compliance", false, "Include compliance details")
 	fs.BoolVar(&ff.AIEnhance, "ai-enhance", false, "Enrich CRITICAL findings via Claude AI (requires ANTHROPIC_API_KEY)")
 	fs.Float64Var(&ff.MinRiskScore, "min-risk-score", 0, "Minimum risk score")

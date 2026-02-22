@@ -4,12 +4,12 @@
 # Category:  INSTANCE THAT EXPOSES MANY VALUED RESOURCES
 # Priority:  CRITICAL (risk score 75.00)
 # Resource:  owasp-test
-# Project:   62518548529
+# Project:   
 # Generated: 2026-02-22
 # ============================================================
 set -euo pipefail
 
-PROJECT="62518548529"
+PROJECT=""
 RESOURCE="owasp-test"
 CATEGORY="INSTANCE THAT EXPOSES MANY VALUED RESOURCES"
 DRY_RUN=${DRY_RUN:-false}

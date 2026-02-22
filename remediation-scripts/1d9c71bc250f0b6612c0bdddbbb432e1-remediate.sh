@@ -4,12 +4,12 @@
 # Category:  USER-MANAGED KEYS TO SERVICE ACCOUNT WITH PERMISSIONS TO ASSUME OTHER SERVICE ACCOUNTS.
 # Priority:  CRITICAL (risk score 75.00)
 # Resource:  projects/wanaware-security-map-dev/serviceAccounts/tfdeploy@wanaware-security-map-dev.iam.gserviceaccount.com
-# Project:   62518548529
+# Project:   
 # Generated: 2026-02-22
 # ============================================================
 set -euo pipefail
 
-PROJECT="62518548529"
+PROJECT=""
 RESOURCE="projects/wanaware-security-map-dev/serviceAccounts/tfdeploy@wanaware-security-map-dev.iam.gserviceaccount.com"
 CATEGORY="USER-MANAGED KEYS TO SERVICE ACCOUNT WITH PERMISSIONS TO ASSUME OTHER SERVICE ACCOUNTS."
 DRY_RUN=${DRY_RUN:-false}

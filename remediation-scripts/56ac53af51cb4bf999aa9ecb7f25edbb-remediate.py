@@ -4,7 +4,7 @@
 # Category:  CONTAINER_IMAGE_VULNERABILITY
 # Priority:  CRITICAL (risk score 76.08)
 # Resource:  projects/wanaware-core-stage/locations/us-central1/repositories/notification-manager/dockerImages/notification-manager@sha256:cab9e775f26b536836d5a5bf951d264e382bca781011c938808142231b2e674d
-# Project:   940510641271
+# Project:   
 # CVE:           CVE-2025-68121 (CVSS 4.8)
 # Generated: 2026-02-22
 # ============================================================

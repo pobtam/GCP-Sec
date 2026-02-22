@@ -4,7 +4,7 @@
 # Category:  CONTAINER_IMAGE_VULNERABILITY
 # Priority:  CRITICAL (risk score 77.76)
 # Resource:  projects/wanaware-core-stage/locations/us-central1/repositories/user-authentication-service/dockerImages/user-authentication-service@sha256:19fe791844eb704c14ebc5e8775ef8c73be7a602fdbbed4164523b3903a01b83
-# Project:   940510641271
+# Project:   
 # CVE:           CVE-2025-61732 (CVSS 8.6)
 # Generated: 2026-02-22
 # ============================================================

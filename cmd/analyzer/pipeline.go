@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/wanaware/gcp-security-analyzer/internal/models"
 	"github.com/wanaware/gcp-security-analyzer/internal/utils"
@@ -92,7 +93,8 @@ func runPipeline(input PipelineInput) int {
 
 	// ── Write report(s) ────────────────────────────────────────────────────
 	formats := resolveFormats(af)
-	baseName := input.BaseName
+	// Append a timestamp to the default base name so every run produces unique files.
+	baseName := input.BaseName + "-" + time.Now().Format("20060102-150405")
 
 	// When -o is provided, its stem and directory take precedence over the
 	// input-file-derived baseName (e.g. -o security-report.md → stem "security-report").

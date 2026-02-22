@@ -4,7 +4,7 @@
 # Category:  CONTAINER_IMAGE_VULNERABILITY
 # Priority:  CRITICAL (risk score 76.08)
 # Resource:  projects/wanaware-core-stage/locations/us-central1/repositories/ssh-service/dockerImages/ssh-service@sha256:271c2265d1133b4de90fcf535f4c5373c9cc4c1fc274cef81f201458ec098e26
-# Project:   940510641271
+# Project:   
 # CVE:           CVE-2025-68121 (CVSS 4.8)
 # Generated: 2026-02-22
 # ============================================================

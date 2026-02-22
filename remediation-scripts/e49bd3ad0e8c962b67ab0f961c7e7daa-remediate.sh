@@ -4,12 +4,12 @@
 # Category:  INSTANCE THAT EXPOSES MANY VALUED RESOURCES
 # Priority:  CRITICAL (risk score 75.00)
 # Resource:  fleet-manager-integration-test-vm
-# Project:   866233621206
+# Project:   
 # Generated: 2026-02-22
 # ============================================================
 set -euo pipefail
 
-PROJECT="866233621206"
+PROJECT=""
 RESOURCE="fleet-manager-integration-test-vm"
 CATEGORY="INSTANCE THAT EXPOSES MANY VALUED RESOURCES"
 DRY_RUN=${DRY_RUN:-false}

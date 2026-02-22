@@ -4,12 +4,12 @@
 # Category:  POD THAT EXPOSES MANY VALUED RESOURCES
 # Priority:  CRITICAL (risk score 75.00)
 # Resource:  aws-integrator-deployment-f85fb6d44-5jh45
-# Project:   503291607878
+# Project:   
 # Generated: 2026-02-22
 # ============================================================
 set -euo pipefail
 
-PROJECT="503291607878"
+PROJECT=""
 RESOURCE="aws-integrator-deployment-f85fb6d44-5jh45"
 CATEGORY="POD THAT EXPOSES MANY VALUED RESOURCES"
 DRY_RUN=${DRY_RUN:-false}

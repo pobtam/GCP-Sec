@@ -4,7 +4,7 @@
 # Category:  OS_VULNERABILITY
 # Priority:  CRITICAL (risk score 94.08)
 # Resource:  wanaware-deployment-cluster
-# Project:   503291607878
+# Project:   
 # CVE:           CVE-2022-23218 (CVSS 9.8)
 # Generated: 2026-02-22
 # ============================================================

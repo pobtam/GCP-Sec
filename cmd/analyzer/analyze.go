@@ -67,7 +67,7 @@ func runAnalyze(args []string) int {
 	fs.StringVar(&af.Categories, "c", "", "Filter by category (shorthand)")
 	fs.StringVar(&af.Projects, "project", "", "Filter by project (comma-separated)")
 	fs.BoolVar(&af.SplitByPriority, "split-by-priority", false, "Split output by priority")
-	fs.BoolVar(&af.IncludeRemediation, "include-remediation", false, "Include remediation steps")
+	fs.BoolVar(&af.IncludeRemediation, "include-remediation", true, "Include remediation steps and scripts (default: enabled)")
 	fs.BoolVar(&af.IncludeCompliance, "include-compliance", false, "Include compliance details")
 	fs.BoolVar(&af.AIEnhance, "ai-enhance", false, "Enrich CRITICAL findings via Claude AI (requires ANTHROPIC_API_KEY)")
 	fs.Float64Var(&af.MinRiskScore, "min-risk-score", 0, "Minimum risk score")

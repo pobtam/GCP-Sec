@@ -4,12 +4,12 @@
 # Category:  PUBLICLY ACCESSIBLE INSTANCE WITH PROJECT-WIDE SSH KEY AND THE ABILITY TO ASSUME SERVICE ACCOUNTS.
 # Priority:  CRITICAL (risk score 75.00)
 # Resource:  owasp-test
-# Project:   62518548529
+# Project:   
 # Generated: 2026-02-22
 # ============================================================
 set -euo pipefail
 
-PROJECT="62518548529"
+PROJECT=""
 RESOURCE="owasp-test"
 CATEGORY="PUBLICLY ACCESSIBLE INSTANCE WITH PROJECT-WIDE SSH KEY AND THE ABILITY TO ASSUME SERVICE ACCOUNTS."
 DRY_RUN=${DRY_RUN:-false}

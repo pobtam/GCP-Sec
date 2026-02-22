@@ -4,7 +4,7 @@
 # Category:  CONTAINER_IMAGE_VULNERABILITY
 # Priority:  CRITICAL (risk score 76.08)
 # Resource:  projects/wanaware-security-map-dev/locations/us-central1/repositories/worker-registration-service/dockerImages/worker-registration-service@sha256:e1a958eb820fe1b9a85ed2e02e5ecf21cd76ef1292607646186615df92e3dc85
-# Project:   62518548529
+# Project:   
 # CVE:           CVE-2025-68121 (CVSS 4.8)
 # Generated: 2026-02-22
 # ============================================================

@@ -4,7 +4,7 @@
 # Category:  CONTAINER_IMAGE_VULNERABILITY
 # Priority:  CRITICAL (risk score 76.08)
 # Resource:  projects/wanaware-core-stage/locations/us-central1/repositories/integrator-proxy-service/dockerImages/integrator-proxy-service@sha256:c5a4e5f1a114ad6bd2f5f48118e5819eaea10b1674e65fe9c67532b9ec287d59
-# Project:   940510641271
+# Project:   
 # CVE:           CVE-2025-68121 (CVSS 4.8)
 # Generated: 2026-02-22
 # ============================================================

@@ -4,7 +4,7 @@
 # Category:  CONTAINER_IMAGE_VULNERABILITY
 # Priority:  CRITICAL (risk score 76.08)
 # Resource:  projects/wanaware-core-prod/locations/us-central1/repositories/subscription-manager/dockerImages/invoice-worker@sha256:11c808586a3b41dea40acd6ea4c241bb3036ccc761862e4430ef0b83dc8ae848
-# Project:   503291607878
+# Project:   
 # CVE:           CVE-2025-68121 (CVSS 4.8)
 # Generated: 2026-02-22
 # ============================================================

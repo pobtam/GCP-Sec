@@ -4,7 +4,7 @@
 # Category:  CONTAINER_IMAGE_VULNERABILITY
 # Priority:  CRITICAL (risk score 77.76)
 # Resource:  projects/wanaware-core-dev/locations/us-central1/repositories/rde/dockerImages/rde@sha256:d54a873740621b2d498552f964bc049566ed61fcf86aaee9a336a7e5d5e7749f
-# Project:   866233621206
+# Project:   
 # CVE:           CVE-2025-61732 (CVSS 8.6)
 # Generated: 2026-02-22
 # ============================================================

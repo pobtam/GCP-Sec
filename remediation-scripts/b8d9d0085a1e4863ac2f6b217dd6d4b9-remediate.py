@@ -4,7 +4,7 @@
 # Category:  CONTAINER_IMAGE_VULNERABILITY
 # Priority:  CRITICAL (risk score 76.08)
 # Resource:  projects/wanaware-core-prod/locations/us-central1/repositories/fleet-manager/dockerImages/fleet-manager@sha256:418f017e986082cba0d71bdaee47aa97c81877eabf449c0941e6a852a1eaf3b4
-# Project:   503291607878
+# Project:   
 # CVE:           CVE-2025-68121 (CVSS 4.8)
 # Generated: 2026-02-22
 # ============================================================

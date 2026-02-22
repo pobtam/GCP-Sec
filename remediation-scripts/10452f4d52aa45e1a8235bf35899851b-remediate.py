@@ -4,7 +4,7 @@
 # Category:  CONTAINER_IMAGE_VULNERABILITY
 # Priority:  CRITICAL (risk score 77.76)
 # Resource:  projects/wanaware-core-dev/locations/us-central1/repositories/subscription-manager/dockerImages/reseller-wholesale-worker@sha256:52d1240bac26db230f3687f6207efea5e4f3698b12168dc215ccc8cb39118aac
-# Project:   866233621206
+# Project:   
 # CVE:           CVE-2025-61732 (CVSS 8.6)
 # Generated: 2026-02-22
 # ============================================================
